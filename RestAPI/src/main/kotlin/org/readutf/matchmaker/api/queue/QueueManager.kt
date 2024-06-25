@@ -1,10 +1,12 @@
 package org.readutf.matchmaker.api.queue
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.Javalin
 import org.readutf.matchmaker.api.queue.entry.QueueEntry
 
 class QueueManager(private var javalin: Javalin) {
 
+    private val logger = KotlinLogging.logger {}
     private val queues = mutableMapOf<String, Queue<QueueEntry>>()
 
     fun registerQueueCreator(name: String, queueCreator: QueueCreator) {
@@ -14,6 +16,8 @@ class QueueManager(private var javalin: Javalin) {
             queues[name] = queue
             it.json(queue)
         }
+        logger.info { "Endpoint registered: (PUT) /queue/$name" }
+
     }
 
 }

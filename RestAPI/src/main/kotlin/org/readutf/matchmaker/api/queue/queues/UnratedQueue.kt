@@ -1,11 +1,12 @@
 package org.readutf.matchmaker.api.queue.queues
 
+import io.javalin.http.Context
 import org.readutf.matchmaker.api.queue.Queue
+import org.readutf.matchmaker.api.queue.QueueCreator
 import org.readutf.matchmaker.api.queue.entry.QueueEntry
 import org.readutf.matchmaker.api.queue.matchmaker.UnratedMatchmaker
 import org.readutf.matchmaker.api.queue.result.QueueResult
 import java.util.*
-import javax.naming.Context
 
 
 class UnratedQueue(teamSize: Int, numberOfTeams: Int) : Queue<QueueEntry> {
@@ -38,9 +39,17 @@ class UnratedQueue(teamSize: Int, numberOfTeams: Int) : Queue<QueueEntry> {
         }
     }
 
-    companion object {
+    class UnratedQueueCreator : QueueCreator {
 
+        override fun createQueue(context: Context): Queue<QueueEntry> {
 
+            val teamSize = context.queryParam("teamSize")
+                ?: throw IllegalArgumentException("teamSize is required")
+            val numberOfTeams = context.queryParam("numberOfTeams")
+                ?: throw IllegalArgumentException("numberOfTeams is required")
+
+            return UnratedQueue(teamSize = teamSize.toInt(), numberOfTeams = numberOfTeams.toInt())
+        }
 
     }
 
