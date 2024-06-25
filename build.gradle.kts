@@ -7,7 +7,7 @@ version = "1.0-SNAPSHOT"
 
 repositories {
     maven {
-        name = "readutf-releases"
+        name = "readutf"
         url = uri("https://reposilite.readutf.org/releases")
     }
 
@@ -15,9 +15,6 @@ repositories {
 
 dependencies {
     testImplementation(kotlin("test"))
-
-    implementation("io.javalin:javalin:6.1.3")
-
 }
 
 tasks.test {

@@ -30,11 +30,13 @@ publishing {
 
 dependencies {
     testImplementation(kotlin("test"))
-    implementation("io.javalin:javalin:6.1.3")
+    implementation("io.javalin:javalin:+")
     implementation("com.sksamuel.hoplite:hoplite-core:2.7.5")
     implementation("com.sksamuel.hoplite:hoplite-yaml:2.8.0.RC3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
+    implementation("org.apache.logging.log4j:log4j-api:2.14.1")
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.23.1")
 }
 
 repositories {
