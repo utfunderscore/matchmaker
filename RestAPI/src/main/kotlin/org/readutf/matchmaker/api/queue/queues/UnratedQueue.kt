@@ -9,7 +9,7 @@ import org.readutf.matchmaker.api.queue.result.QueueResult
 import java.util.*
 
 
-class UnratedQueue(teamSize: Int, numberOfTeams: Int) : Queue<QueueEntry> {
+class UnratedQueue(var name: String, var teamSize: Int, var numberOfTeams: Int) : Queue<QueueEntry> {
 
     private val queue = mutableListOf<QueueEntry>()
     private val playerTracker = mutableMapOf<UUID, QueueEntry>()
@@ -39,16 +39,16 @@ class UnratedQueue(teamSize: Int, numberOfTeams: Int) : Queue<QueueEntry> {
         }
     }
 
-    class UnratedQueueCreator : QueueCreator {
+    class UnratedQueueCreator : QueueCreator<UnratedQueue> {
 
-        override fun createQueue(context: Context): Queue<QueueEntry> {
+        override fun createQueue(queueName: String, context: Context): UnratedQueue {
 
             val teamSize = context.queryParam("teamSize")
                 ?: throw IllegalArgumentException("teamSize is required")
             val numberOfTeams = context.queryParam("numberOfTeams")
                 ?: throw IllegalArgumentException("numberOfTeams is required")
 
-            return UnratedQueue(teamSize = teamSize.toInt(), numberOfTeams = numberOfTeams.toInt())
+            return UnratedQueue(name = queueName, teamSize = teamSize.toInt(), numberOfTeams = numberOfTeams.toInt())
         }
 
     }

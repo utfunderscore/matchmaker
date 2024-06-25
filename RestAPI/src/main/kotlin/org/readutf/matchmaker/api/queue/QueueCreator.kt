@@ -3,8 +3,8 @@ package org.readutf.matchmaker.api.queue
 import io.javalin.http.Context
 import org.readutf.matchmaker.api.queue.entry.QueueEntry
 
-interface QueueCreator {
+interface QueueCreator<T : Queue<*>> {
 
-    fun createQueue(context: Context): Queue<QueueEntry>
+    fun createQueue(queueName: String, context: Context): T
 
 }

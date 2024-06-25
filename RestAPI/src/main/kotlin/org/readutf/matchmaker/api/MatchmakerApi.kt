@@ -1,5 +1,6 @@
 package org.readutf.matchmaker.api
 
+import com.alibaba.fastjson2.JSON
 import org.readutf.matchmaker.api.config.MainConfig
 import org.readutf.matchmaker.api.endpoint.EndpointManager
 import org.readutf.matchmaker.api.queue.QueueManager
