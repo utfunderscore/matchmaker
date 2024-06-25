@@ -1,11 +1,18 @@
 plugins {
     kotlin("jvm") version "1.9.23"
     id("maven-publish")
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "com.readutf.matchmaker"
-version = "1.0-SNAPSHOT"
+version = "1.0.1"
 
+
+tasks {
+    shadowJar {
+        mergeServiceFiles()
+    }
+}
 
 publishing {
     repositories {
