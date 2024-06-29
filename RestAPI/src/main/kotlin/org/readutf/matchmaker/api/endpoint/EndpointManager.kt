@@ -10,13 +10,12 @@ import org.readutf.matchmaker.shared.response.ApiResponse
 
 class EndpointManager(private var endpointConfig: EndpointConfig, vararg endpoints: Any) {
 
-    
-    var javalin: Javalin = Javalin.createAndStart { config ->
+    private var javalin: Javalin = Javalin.createAndStart { config ->
+        //Register config for javalin
 
         config.jetty.defaultHost = endpointConfig.hostaddress
         config.jetty.defaultPort = endpointConfig.port
 
-        //Register config for javalin
         config.jsonMapper(FastJsonMapper)
         config.bundledPlugins.enableCors { cors -> cors.addRule { it.anyHost() } }
         config.router.mount(Annotated) { routing ->
@@ -28,6 +27,10 @@ class EndpointManager(private var endpointConfig: EndpointConfig, vararg endpoin
 
     }.exception(Exception::class.java) { e, ctx ->
         ctx.json(ApiResponse.failure(e.message ?: "An error occurred"))
+    }
+
+    fun stop() {
+        javalin.stop()
     }
 
 }

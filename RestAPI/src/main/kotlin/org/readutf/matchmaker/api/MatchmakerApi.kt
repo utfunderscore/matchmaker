@@ -15,7 +15,16 @@ class MatchmakerApi(mainConfig: MainConfig) {
     )
 
     init {
-        queueManager.registerQueueCreator("unrated", UnratedQueue.UnratedQueueCreator())
+        Runtime.getRuntime().addShutdownHook(Thread { this.stop() })
+    }
+
+    private fun stop() {
+        logger.info { "Matchmaker shutting down..." }
+
+        endpointManager.stop()
+        queueManager.stop()
+
+        logger.info { "Matchmaker stopped." }
     }
 
 }
