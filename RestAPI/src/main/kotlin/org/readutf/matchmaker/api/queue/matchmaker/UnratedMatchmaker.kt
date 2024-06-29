@@ -1,10 +1,10 @@
 package org.readutf.matchmaker.api.queue.matchmaker
 
 import org.readutf.matchmaker.api.queue.Matchmaker
-import org.readutf.matchmaker.api.queue.entry.QueueEntry
 import org.readutf.matchmaker.api.queue.exception.TeamBuildException
 import org.readutf.matchmaker.api.queue.result.QueueResult
 import org.readutf.matchmaker.api.utils.QueueEntryUtils
+import org.readutf.matchmaker.shared.entry.QueueEntry
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -13,7 +13,7 @@ class UnratedMatchmaker(private val teamSize: Int, private val numberOfTeams: In
 
     @Throws(TeamBuildException::class)
     override fun buildTeams(queue: List<QueueEntry>): QueueResult {
-        if(QueueEntryUtils.getNumberInQueue(queue) < teamSize * numberOfTeams) {
+        if(QueueEntryUtils.getTotalPlayers(queue) < teamSize * numberOfTeams) {
             // Prevent unnecessary computation, when we know we don't have enough players
             throw TeamBuildException("Not enough players in queue")
         }

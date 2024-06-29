@@ -1,10 +1,10 @@
 package org.readutf.matchmaker.api.utils
 
-import org.readutf.matchmaker.api.queue.entry.QueueEntry
+import org.readutf.matchmaker.shared.entry.QueueEntry
 
 object QueueEntryUtils {
 
-    fun getNumberInQueue(queue: List<QueueEntry>): Int {
+    fun getTotalPlayers(queue: List<QueueEntry>): Int {
         return queue.sumOf { queue.size }
     }
 

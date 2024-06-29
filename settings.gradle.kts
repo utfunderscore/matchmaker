@@ -4,3 +4,4 @@ plugins {
 rootProject.name = "matchmaker"
 include("RestAPI")
 include("Shared")
+include("wrapper")

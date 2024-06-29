@@ -1,6 +1,6 @@
-package org.readutf.matchmaker.api.utils
+package org.readutf.matchmaker.shared.response
 
-class ApiResponse<T>(var success: Boolean, var failureReason: String?, var data: T?) {
+class ApiResponse<T>(var success: Boolean, var failureReason: String?, var response: T?) {
 
     companion object {
 

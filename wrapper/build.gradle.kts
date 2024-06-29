@@ -1,5 +1,5 @@
 plugins {
-    kotlin("jvm") version "1.9.23"
+    kotlin("jvm")
     id("maven-publish")
 }
 
@@ -7,6 +7,7 @@ group = "com.readutf.matchmaker"
 version = "1.0-SNAPSHOT"
 
 publishing {
+
     repositories {
         maven {
             name = "readutf-releases"
@@ -20,7 +21,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = "org.readutf.matchmaker"
-            artifactId = "shared"
+            artifactId = "wrapper"
             version = "1.0.0"
             from(components["java"])
         }
@@ -29,6 +30,12 @@ publishing {
 
 dependencies {
     testImplementation(kotlin("test"))
+
+    implementation(project(":Shared"))
+
+    implementation("com.tinder.scarlet:scarlet:0.1.12")
+    implementation("com.squareup.retrofit2:retrofit:+")
+    implementation("com.alibaba:fastjson:2.0.51")
 }
 
 tasks.test {

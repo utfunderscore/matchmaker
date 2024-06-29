@@ -1,17 +1,20 @@
 package org.readutf.matchmaker.api.queue
 
-import org.readutf.matchmaker.api.queue.entry.QueueEntry
 import org.readutf.matchmaker.api.queue.result.QueueResult
+import org.readutf.matchmaker.shared.entry.QueueEntry
+import org.readutf.matchmaker.shared.settings.QueueSettings
 import java.util.UUID
 
-interface Queue<T : QueueEntry> {
+interface Queue {
 
     fun isInQueue(uuid: UUID): Boolean
 
-    fun addToQueue(queueEntry: T)
+    fun addToQueue(queueEntry: QueueEntry)
 
     fun tick(): QueueResult;
 
-    fun removeFromQueue(queueEntry: T)
+    fun removeFromQueue(queueEntry: QueueEntry)
+
+    fun getSettings(): QueueSettings
 
 }

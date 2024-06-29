@@ -1,6 +1,6 @@
 package org.readutf.matchmaker.api.queue.result
 
-import org.readutf.matchmaker.api.queue.entry.QueueEntry
+import org.readutf.matchmaker.shared.entry.QueueEntry
 
 class QueueResult(var teams: List<List<QueueEntry>>? = null, var error: String? = null) {
 

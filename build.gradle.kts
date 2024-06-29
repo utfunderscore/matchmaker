@@ -5,12 +5,22 @@ plugins {
 group = "com.readutf.matchmaker"
 version = "1.0-SNAPSHOT"
 
-repositories {
-    maven {
-        name = "readutf"
-        url = uri("https://reposilite.readutf.org/releases")
+
+
+subprojects {
+
+    repositories {
+        maven {
+            url = uri("https://reposilite.readutf.org/releases")
+        }
     }
 
+}
+
+repositories {
+    maven {
+        url = uri("https://reposilite.readutf.org/releases")
+    }
 }
 
 dependencies {

@@ -18,3 +18,7 @@ gradle-app.setting
 RestAPI/build/
 
 gradle.properties
+
+wrapper/build/
+
+Shared/build/
