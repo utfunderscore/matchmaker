@@ -11,7 +11,7 @@ import java.io.File
 import java.io.FileInputStream
 import java.io.FileOutputStream
 
-class UnratedQueueStore : QueueStore {
+class UnratedQueueStore : QueueStore<UnratedQueue> {
 
     private val logger = KotlinLogging.logger { }
 
@@ -19,7 +19,7 @@ class UnratedQueueStore : QueueStore {
 
     private val file = File(File(System.getProperty("user.dir")), "unrated-queues.json")
 
-    override fun loadQueues(): List<Queue> {
+    override fun loadQueues(): List<UnratedQueue> {
 
         logger.info { "Loading Unrated queues..." }
 

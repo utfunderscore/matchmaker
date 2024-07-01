@@ -4,11 +4,17 @@ import io.javalin.Javalin
 import io.javalin.community.routing.annotations.AnnotatedRouting.Annotated
 import io.javalin.util.ConcurrencyUtil
 import org.readutf.matchmaker.api.config.EndpointConfig
+import org.readutf.matchmaker.api.logger
+import org.readutf.matchmaker.api.queue.socket.QueueSocketManager
 import org.readutf.matchmaker.api.utils.FastJsonMapper
 import org.readutf.matchmaker.shared.response.ApiResponse
 
 
-class EndpointManager(private var endpointConfig: EndpointConfig, vararg endpoints: Any) {
+class EndpointManager(
+    private var endpointConfig: EndpointConfig,
+    private var queueSocketManager: QueueSocketManager,
+    vararg endpoints: Any,
+) {
 
     private var javalin: Javalin = Javalin.createAndStart { config ->
         //Register config for javalin
@@ -26,8 +32,14 @@ class EndpointManager(private var endpointConfig: EndpointConfig, vararg endpoin
         }
 
     }.exception(Exception::class.java) { e, ctx ->
-        ctx.json(ApiResponse.failure(e.message ?: "An error occurred"))
+        ctx.json(ApiResponse.failure<Boolean>(e.message ?: "An error occurred"))
+        logger.error(e) { "An exception occurred on path ${ctx.contextPath()}" }
+    }.ws("/api/queue/notify") { ws ->
+        ws.onConnect(queueSocketManager::onSocketJoin)
+        ws.onClose(queueSocketManager::onSocketLeave)
     }
+
+
 
     fun stop() {
         javalin.stop()

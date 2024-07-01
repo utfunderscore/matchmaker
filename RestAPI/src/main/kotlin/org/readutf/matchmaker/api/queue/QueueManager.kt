@@ -2,17 +2,30 @@ package org.readutf.matchmaker.api.queue
 
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.readutf.matchmaker.api.queue.queues.UnratedQueue
+import org.readutf.matchmaker.api.queue.socket.QueueSocketManager
 
-class QueueManager {
+class QueueManager(val socketManager: QueueSocketManager) {
 
     private val logger = KotlinLogging.logger {}
     private val queues = mutableMapOf<String, Queue>()
+    private val queueToCreator = mutableMapOf<Queue, QueueHandler<*>>()
     private val queueCreators = mutableMapOf<String, QueueHandler<*>>()
 
     init {
         logger.info { "Initializing QueueManager" }
 
         registerQueueHandler("unrated", UnratedQueue.UnratedQueueHandler())
+    }
+
+    fun handleTick(queue: Queue) {
+
+        val result = queue.tick()
+
+        if (result.empty) {
+            return
+        }
+
+        socketManager.notify(result)
     }
 
     fun <T : Queue> registerQueueHandler(name: String, queueHandler: QueueHandler<T>) {
@@ -54,6 +67,10 @@ class QueueManager {
 
     fun getQueues(): List<Queue> {
         return queues.values.toList()
+    }
+
+    fun getQueueCreators(): List<String> {
+        return queueCreators.keys.toList()
     }
 
     fun stop() {

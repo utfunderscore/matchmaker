@@ -7,6 +7,8 @@ interface QueueHandler<T : Queue> {
 
     fun createQueue(queueName: String, context: Context): T
 
-    fun getQueueStore(): QueueStore
+    fun getQueueStore(): QueueStore<T>
+
+    fun cast(queue: Queue): T
 
 }

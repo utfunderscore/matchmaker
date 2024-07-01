@@ -1,25 +1,27 @@
 package org.readutf.matchmaker.api.queue.endpoints
 
-import io.javalin.community.routing.annotations.Endpoints
-import io.javalin.community.routing.annotations.Get
-import io.javalin.community.routing.annotations.Param
-import io.javalin.community.routing.annotations.Put
+import com.alibaba.fastjson2.JSON
+import com.alibaba.fastjson2.TypeReference
+import io.javalin.community.routing.annotations.*
 import io.javalin.http.Context
+import org.readutf.matchmaker.api.logger
 import org.readutf.matchmaker.api.queue.Queue
 import org.readutf.matchmaker.api.queue.QueueManager
 import org.readutf.matchmaker.shared.entry.QueueEntry
 import org.readutf.matchmaker.shared.response.ApiResponse
+import org.readutf.matchmaker.shared.settings.QueueSettings
+import java.util.*
 
 @Endpoints("/api/queue")
 class QueueEndpoints(private var queueManager: QueueManager) {
 
     @Get("/list")
-    fun list(ctx: Context): ApiResponse<List<Queue>> {
-        return ApiResponse.success(queueManager.getQueues())
+    fun list(ctx: Context): ApiResponse<List<QueueSettings>> {
+        return ApiResponse.success(queueManager.getQueues().map { it.getSettings() })
     }
 
-    @Put("/create/{id}")
-    fun create(ctx: Context): ApiResponse<*> {
+    @Put("{id}/create/")
+    fun create(ctx: Context): ApiResponse<QueueSettings> {
         val id = ctx.pathParam("id")
 
         val queueName = ctx.queryParam("name") ?: throw IllegalArgumentException("Missing query parameter 'name'")
@@ -31,17 +33,33 @@ class QueueEndpoints(private var queueManager: QueueManager) {
         return ApiResponse.success(queue.getSettings())
     }
 
-    @Put("/join/{name}")
-    fun join(ctx: Context, @Param queueEntry: QueueEntry): ApiResponse<*> {
-        val queueName = ctx.pathParam("name")
+    @Post("/join")
+    fun join(ctx: Context): ApiResponse<Boolean> {
+        val queueName = ctx.queryParam("name") ?: throw IllegalArgumentException("Missing query parameter 'name'")
+        val playerTeamsString = ctx.queryParam("players") ?: return ApiResponse.failure("Missing query parameter 'players'")
+
         val queue = queueManager.getQueue(queueName) ?: return ApiResponse.failure("Queue $queueName not found")
+        val playerTeams = JSON.parseObject(
+            playerTeamsString,
+            object : TypeReference<List<List<UUID>>>() {})
+
+        if(playerTeams == null) return ApiResponse.failure("Invalid player teams")
 
         try {
-            queue.addToQueue(queueEntry)
+            val queueEntrys = playerTeams.map { QueueEntry(it) }
+            queueEntrys.forEach { queue.addToQueue(it) }
+            queueManager.handleTick(queue)
+
             return ApiResponse.success(true)
         } catch (e: Exception) {
+            logger.error(e) { "An error occurred while adding players to queue $queueName" }
             return ApiResponse.failure(e.message ?: "An error occurred")
         }
+    }
+
+    @Get("/types")
+    fun listCreators(ctx: Context): ApiResponse<List<String>> {
+        return ApiResponse.success(queueManager.getQueueCreators())
     }
 
 }

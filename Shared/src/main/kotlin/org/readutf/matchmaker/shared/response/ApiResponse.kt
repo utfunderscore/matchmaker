@@ -8,7 +8,7 @@ class ApiResponse<T>(var success: Boolean, var failureReason: String?, var respo
             return ApiResponse(true, null, data)
         }
 
-        fun failure(reason: String): ApiResponse<Boolean> {
+        fun <T> failure(reason: String): ApiResponse<T> {
             return ApiResponse(false, reason, null)
         }
 

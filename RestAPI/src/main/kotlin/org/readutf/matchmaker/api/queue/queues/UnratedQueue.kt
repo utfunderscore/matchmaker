@@ -1,16 +1,15 @@
 package org.readutf.matchmaker.api.queue.queues
 
 import com.alibaba.fastjson2.annotation.JSONField
-import org.readutf.matchmaker.shared.settings.UnratedQueueSettings
 import io.javalin.http.Context
 import org.readutf.matchmaker.api.queue.Queue
 import org.readutf.matchmaker.api.queue.QueueHandler
 import org.readutf.matchmaker.api.queue.matchmaker.UnratedMatchmaker
-import org.readutf.matchmaker.api.queue.result.QueueResult
+import org.readutf.matchmaker.shared.result.QueueResult
 import org.readutf.matchmaker.api.queue.store.QueueStore
 import org.readutf.matchmaker.api.queue.store.impl.UnratedQueueStore
 import org.readutf.matchmaker.shared.entry.QueueEntry
-import org.readutf.matchmaker.shared.settings.QueueSettings
+import org.readutf.matchmaker.shared.settings.UnratedQueueSettings
 import java.util.*
 
 
@@ -33,7 +32,11 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
     }
 
     override fun tick(): QueueResult {
-        return matchmaker.buildTeams(queue)
+        return try {
+            matchmaker.buildTeams(queue)
+        } catch (e: Exception) {
+            QueueResult.error(e.message ?: "An error occurred while building teams")
+        }
     }
 
     override fun removeFromQueue(queueEntry: QueueEntry) {
@@ -61,8 +64,12 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
             return UnratedQueue(UnratedQueueSettings(queueName, teamSize.toInt(), numberOfTeams.toInt()))
         }
 
-        override fun getQueueStore(): QueueStore {
+        override fun getQueueStore(): QueueStore<UnratedQueue> {
             return UnratedQueueStore()
+        }
+
+        override fun cast(queue: Queue): UnratedQueue {
+            return queue as UnratedQueue
         }
 
 

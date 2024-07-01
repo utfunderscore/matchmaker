@@ -4,13 +4,15 @@ import org.readutf.matchmaker.api.config.MainConfig
 import org.readutf.matchmaker.api.endpoint.EndpointManager
 import org.readutf.matchmaker.api.queue.QueueManager
 import org.readutf.matchmaker.api.queue.endpoints.QueueEndpoints
-import org.readutf.matchmaker.api.queue.queues.UnratedQueue
+import org.readutf.matchmaker.api.queue.socket.QueueSocketManager
 
 class MatchmakerApi(mainConfig: MainConfig) {
 
-    private val queueManager = QueueManager()
+    private val queueSocketManager = QueueSocketManager()
+    private val queueManager = QueueManager(queueSocketManager)
     private val endpointManager = EndpointManager(
         mainConfig.endpointConfig,
+        queueSocketManager,
         QueueEndpoints(queueManager)
     )
 
