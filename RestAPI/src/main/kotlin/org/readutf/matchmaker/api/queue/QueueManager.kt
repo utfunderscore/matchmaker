@@ -3,6 +3,8 @@ package org.readutf.matchmaker.api.queue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.readutf.matchmaker.api.queue.queues.UnratedQueue
 import org.readutf.matchmaker.api.queue.socket.QueueSocketManager
+import org.readutf.matchmaker.shared.result.QueueResultType
+import org.readutf.matchmaker.shared.result.QueueResultType.NEUTRAL
 
 class QueueManager(val socketManager: QueueSocketManager) {
 
@@ -21,14 +23,14 @@ class QueueManager(val socketManager: QueueSocketManager) {
 
         val result = queue.tick()
 
-        if (result.empty) {
+        if (result.resultType == NEUTRAL) {
             return
         }
 
         socketManager.notify(result)
     }
 
-    fun <T : Queue> registerQueueHandler(name: String, queueHandler: QueueHandler<T>) {
+    private fun <T : Queue> registerQueueHandler(name: String, queueHandler: QueueHandler<T>) {
 
         if (queueCreators.containsKey(name)) {
             throw IllegalArgumentException("Queue creator already exists")

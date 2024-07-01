@@ -21,7 +21,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = "org.readutf.matchmaker"
-            artifactId = "wrapper"
+            artifactId = "Wrapper"
             version = "1.0.0"
             from(components["java"])
         }
@@ -33,9 +33,15 @@ dependencies {
 
     implementation(project(":Shared"))
 
-    implementation("com.tinder.scarlet:scarlet:0.1.12")
+    implementation("com.neovisionaries:nv-websocket-client:2.14")
     implementation("com.squareup.retrofit2:retrofit:+")
     implementation("com.alibaba:fastjson:2.0.51")
+    implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
+
+    //Logging
+    implementation("org.apache.logging.log4j:log4j-api:2.14.1")
+    implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.23.1")
+
 }
 
 tasks.test {

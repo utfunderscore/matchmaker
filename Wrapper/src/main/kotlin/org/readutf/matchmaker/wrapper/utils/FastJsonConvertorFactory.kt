@@ -1,6 +1,6 @@
 package org.readutf.matchmaker.wrapper.utils
 
-import com.alibaba.fastjson.JSON
+import com.alibaba.fastjson2.JSON
 import okhttp3.MediaType
 import okhttp3.RequestBody
 import okhttp3.ResponseBody
@@ -8,7 +8,7 @@ import retrofit2.Converter
 import retrofit2.Retrofit
 import java.lang.reflect.Type
 
-class FastJson2ConvertorFactory : Converter.Factory() {
+class FastJsonConvertorFactory : Converter.Factory() {
 
     override fun responseBodyConverter(
         type: Type,

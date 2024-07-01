@@ -5,6 +5,7 @@ import org.readutf.matchmaker.api.queue.exception.TeamBuildException
 import org.readutf.matchmaker.shared.result.QueueResult
 import org.readutf.matchmaker.api.utils.QueueEntryUtils
 import org.readutf.matchmaker.shared.entry.QueueEntry
+import org.readutf.matchmaker.shared.result.QueueResultType
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -32,7 +33,7 @@ class UnratedMatchmaker(private val teamSize: Int, private val numberOfTeams: In
             teams.add(firstCombination)
         }
 
-        return QueueResult(teams);
+        return QueueResult(QueueResultType.SUCCESS, teams, "Successs!")
     }
 
     private fun findCombinations(teams: List<QueueEntry>, target: Int): List<List<QueueEntry>> {

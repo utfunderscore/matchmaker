@@ -22,3 +22,5 @@ gradle.properties
 wrapper/build/
 
 Shared/build/
+
+CLI-Client/build/

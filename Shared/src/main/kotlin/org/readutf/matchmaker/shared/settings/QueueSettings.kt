@@ -1,7 +1,8 @@
 package org.readutf.matchmaker.shared.settings
 
-abstract class QueueSettings {
+open class QueueSettings(open var queueName: String) {
 
-    abstract var queueName: String
-
+    override fun toString(): String {
+        return "QueueSettings(queueName='$queueName')"
+    }
 }

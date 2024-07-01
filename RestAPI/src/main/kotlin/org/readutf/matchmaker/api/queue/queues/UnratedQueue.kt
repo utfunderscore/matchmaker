@@ -9,6 +9,7 @@ import org.readutf.matchmaker.shared.result.QueueResult
 import org.readutf.matchmaker.api.queue.store.QueueStore
 import org.readutf.matchmaker.api.queue.store.impl.UnratedQueueStore
 import org.readutf.matchmaker.shared.entry.QueueEntry
+import org.readutf.matchmaker.shared.result.QueueResultType
 import org.readutf.matchmaker.shared.settings.UnratedQueueSettings
 import java.util.*
 
@@ -35,7 +36,7 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
         return try {
             matchmaker.buildTeams(queue)
         } catch (e: Exception) {
-            QueueResult.error(e.message ?: "An error occurred while building teams")
+            QueueResult(resultType = QueueResultType.UNHANDLED_ERROR, emptyList(),  e.message ?: "An error occurred while building teams")
         }
     }
 

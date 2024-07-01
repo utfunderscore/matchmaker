@@ -3,6 +3,7 @@ package org.readutf.matchmaker.api.queue.socket
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.websocket.WsConnectContext
 import io.javalin.websocket.WsContext
+import org.readutf.matchmaker.shared.TypedJson
 
 class QueueSocketManager {
 
@@ -22,11 +23,6 @@ class QueueSocketManager {
         logger.info { "Notified ${activeSockets.size} sockets $data" }
     }
 
-    class TypedJson(any: Any) {
 
-        val type = any::class.qualifiedName
-        val data = any
-
-    }
 
 }
