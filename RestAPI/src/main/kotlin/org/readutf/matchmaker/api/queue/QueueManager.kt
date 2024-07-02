@@ -3,8 +3,7 @@ package org.readutf.matchmaker.api.queue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.readutf.matchmaker.api.queue.queues.UnratedQueue
 import org.readutf.matchmaker.api.queue.socket.QueueSocketManager
-import org.readutf.matchmaker.shared.result.QueueResultType
-import org.readutf.matchmaker.shared.result.QueueResultType.NEUTRAL
+import org.readutf.matchmaker.shared.result.impl.EmptyQueueResult
 
 class QueueManager(val socketManager: QueueSocketManager) {
 
@@ -23,9 +22,7 @@ class QueueManager(val socketManager: QueueSocketManager) {
 
         val result = queue.tick()
 
-        if (result.resultType == NEUTRAL) {
-            return
-        }
+        if (result is EmptyQueueResult) return
 
         socketManager.notify(result)
     }

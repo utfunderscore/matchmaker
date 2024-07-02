@@ -15,6 +15,8 @@ dependencies {
     implementation(project(":Shared"))
     implementation(project(":Wrapper"))
 
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
+
 
     implementation("com.alibaba:fastjson:2.0.51")
 }

@@ -1,5 +1,8 @@
 package org.readutf.matchmaker.wrapper
 
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.runBlocking
 import org.readutf.matchmaker.shared.settings.QueueSettings
 import org.readutf.matchmaker.wrapper.api.QueueService
 import java.util.*
@@ -17,18 +20,14 @@ class Queue(private val queueSettings: QueueSettings, private val queueService: 
     )
 
     @Throws(Exception::class)
-    fun join(players: List<List<UUID>>): Boolean {
+    fun join(players: List<List<UUID>>): Deferred<Unit> = runBlocking {
+        async {
+            val joinResult = queueService.join(queueName, players)
 
-        val joinHandle = queueService.join(queueName, players).execute()
+            if(!joinResult.success) throw Exception("Failed to join queue")
 
-        if (!joinHandle.isSuccessful || joinHandle.body() == null) throw ServiceUnreachableException()
-
-        val joinResponse = joinHandle.body()!!
-
-        if (joinResponse.success) return true
-
-        exceptionMap.getOrDefault(joinResponse.failureReason, Supplier { Exception(joinResponse.failureReason) }).get()
-            .let { throw it }
+            return@async
+        }
     }
 
 

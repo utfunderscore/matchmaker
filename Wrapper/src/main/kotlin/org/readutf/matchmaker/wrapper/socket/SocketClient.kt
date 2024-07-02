@@ -42,7 +42,7 @@ class SocketClient(hostName: String, port: Int, val queueManager: QueueManager) 
         when (typedData.data) {
 
             is QueueResult -> {
-                queueManager.handleQueueResult(typedData.data as QueueResult)
+                queueManager.handleQueueResultAsync(typedData.data as QueueResult)
             }
 
             else -> {

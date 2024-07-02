@@ -1,12 +1,11 @@
 package org.readutf.matchmaker.wrapper
 
-import org.readutf.matchmaker.shared.result.QueueResult
-import java.util.UUID
+import org.readutf.matchmaker.shared.entry.QueueEntry
 
 interface QueueListener {
 
-    fun onQueueResult(queue: Queue, teams: List<List<UUID>>)
+    fun onQueueSuccess(queue: Queue, teams: List<List<QueueEntry>>)
 
-    fun onQueueFailure(queue: Queue, failureReason: String)
+    fun onMatchMakerError(queue: Queue, failureReason: String)
 
 }

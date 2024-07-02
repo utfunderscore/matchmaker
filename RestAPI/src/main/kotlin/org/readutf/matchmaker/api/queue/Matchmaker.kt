@@ -5,6 +5,6 @@ import org.readutf.matchmaker.shared.entry.QueueEntry
 
 interface Matchmaker<T : QueueEntry> {
 
-    fun buildTeams(queue: List<T>): QueueResult
+    fun buildTeams(queue: List<T>): List<List<T>>
 
 }

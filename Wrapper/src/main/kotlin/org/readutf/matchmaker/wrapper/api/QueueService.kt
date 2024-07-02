@@ -3,7 +3,9 @@ package org.readutf.matchmaker.wrapper.api
 import org.readutf.matchmaker.shared.response.ApiResponse
 import org.readutf.matchmaker.shared.settings.QueueSettings
 import retrofit2.Call
+import retrofit2.http.Body
 import retrofit2.http.GET
+import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -12,16 +14,18 @@ import java.util.UUID
 interface QueueService {
 
     @GET("/api/queue/list")
-    fun list(): Call<ApiResponse<List<QueueSettings>>>
+    suspend fun list(): ApiResponse<List<QueueSettings>>
 
     @GET("/api/queue/{id}/create/")
-    fun create(@Path("id") queueType: String, @Path("name") queueName: String): Call<ApiResponse<QueueSettings>>
+    suspend fun create(@Path("id") queueType: String, @Path("name") queueName: String): ApiResponse<QueueSettings>
 
-    @PUT("/api/queue/join")
-    fun join(@Query("name") queueName: String, @Query("players") players: List<List<UUID>>): Call<ApiResponse<Boolean>>
+    @POST("/api/queue/join")
+    suspend fun join(@Query("name") queueName: String, @Body players: @JvmSuppressWildcards List<List<UUID>>): ApiResponse<Boolean>
+
+    @GET("/api/queue")
+    suspend fun getQueue(@Query("queueName") queueName: String): ApiResponse<QueueSettings>
 
     @GET("/api/types")
-    fun types(): Call<ApiResponse<List<String>>>
-
+    suspend fun types(): ApiResponse<List<String>>
 
 }

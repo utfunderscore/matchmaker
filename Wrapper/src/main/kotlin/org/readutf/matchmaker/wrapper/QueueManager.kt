@@ -1,7 +1,15 @@
 package org.readutf.matchmaker.wrapper
 
+import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.Deferred
+import kotlinx.coroutines.async
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import okhttp3.OkHttpClient
+import okhttp3.logging.HttpLoggingInterceptor
 import org.readutf.matchmaker.shared.result.QueueResult
-import org.readutf.matchmaker.shared.result.QueueResultType
+import org.readutf.matchmaker.shared.result.impl.MatchMakerError
+import org.readutf.matchmaker.shared.result.impl.QueueSuccess
 import org.readutf.matchmaker.wrapper.api.QueueService
 import org.readutf.matchmaker.wrapper.socket.SocketClient
 import org.readutf.matchmaker.wrapper.utils.FastJsonConvertorFactory
@@ -9,9 +17,16 @@ import retrofit2.Retrofit
 
 class QueueManager(hostname: String, port: Int, val queueListener: QueueListener) {
 
+    val logger = KotlinLogging.logger { }
+
     private val queues = mutableMapOf<String, Queue>()
 
     private val retrofit = Retrofit.Builder()
+        .client(
+            OkHttpClient.Builder()
+                .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+                .build()
+        )
         .baseUrl("http://$hostname:$port/")
         .addConverterFactory(FastJsonConvertorFactory())
         .build()
@@ -22,44 +37,68 @@ class QueueManager(hostname: String, port: Int, val queueListener: QueueListener
 
     init {
 
-        val execute = queueService.list().execute()
+        runBlocking {
+            val execute = queueService.list()
 
-        execute.body()?.response?.forEach {
-            queues[it.queueName] = Queue(it, queueService)
+            execute.response?.forEach {
+                queues[it.queueName] = Queue(it, queueService)
+            }
         }
 
     }
 
-    fun createQueue(queueType: String, queueName: String): Queue {
-        val create = queueService.create(queueType, queueName)
+    fun createQueue(queueType: String, queueName: String): Deferred<Queue> = runBlocking {
+        return@runBlocking async {
+            val apiResponse = queueService.create(queueType, queueName)
 
-        val execute = create.execute()
-        if (!execute.isSuccessful) throw Exception("Failed to create queue")
-        val apiResponse = execute.body()
+            if (!apiResponse.success || apiResponse.response == null)
+                throw Exception(apiResponse.failureReason ?: "Failed to create queue")
 
-        if (apiResponse?.response == null || !apiResponse.success)
-            throw Exception(apiResponse?.failureReason ?: "Failed to create queue")
+            val queueSettings = apiResponse.response!!
 
-        val queueSettings = apiResponse.response!!
-
-        val queue = Queue(queueSettings, queueService)
-        queues[queueSettings.queueName] = queue
-        return queue;
-    }
-
-    fun handleQueueResult(queueResult: QueueResult) {
-
-        if(queueResult.resultType == QueueResultType.SUCCESS) {
-            queueListener.onQueueResult(qu)
+            val queue = Queue(queueSettings, queueService)
+            queues[queueSettings.queueName] = queue
+            return@async queue;
         }
 
+    }
 
+    fun handleQueueResultAsync(queueResult: QueueResult) = runBlocking { launch { handleQueueResult(queueResult) } }
+
+
+    private suspend fun handleQueueResult(queueResult: QueueResult) {
+        val queue = getQueueOrFetch(queueResult.queueName)
+
+        if (queue == null) {
+            logger.warn { "Received information about a queue that doesnt exist" }
+            return
+        }
+
+        when (queueResult) {
+
+            is QueueSuccess -> {
+                queueListener.onQueueSuccess(queue, queueResult.teams)
+            }
+
+            is MatchMakerError -> {
+                queueListener.onMatchMakerError(queue, queueResult.failureReason)
+            }
+        }
     }
 
     fun getQueue(queueName: String): Queue? {
         return queues[queueName]
     }
 
-    fun fetchQueue()
+    private suspend fun getQueueOrFetch(queueName: String): Queue? {
+        val queueResult = queueService.getQueue(queueName)
+
+        if (queueResult.success && queueResult.response != null) {
+            return Queue(queueResult.response!!, queueService)
+        }
+
+        return null
+
+    }
 
 }

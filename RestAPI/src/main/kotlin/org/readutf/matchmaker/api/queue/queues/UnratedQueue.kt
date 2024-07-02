@@ -9,7 +9,9 @@ import org.readutf.matchmaker.shared.result.QueueResult
 import org.readutf.matchmaker.api.queue.store.QueueStore
 import org.readutf.matchmaker.api.queue.store.impl.UnratedQueueStore
 import org.readutf.matchmaker.shared.entry.QueueEntry
-import org.readutf.matchmaker.shared.result.QueueResultType
+import org.readutf.matchmaker.shared.result.impl.EmptyQueueResult
+import org.readutf.matchmaker.shared.result.impl.MatchMakerError
+import org.readutf.matchmaker.shared.result.impl.QueueSuccess
 import org.readutf.matchmaker.shared.settings.UnratedQueueSettings
 import java.util.*
 
@@ -33,11 +35,18 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
     }
 
     override fun tick(): QueueResult {
-        return try {
+        val teams = try {
             matchmaker.buildTeams(queue)
         } catch (e: Exception) {
-            QueueResult(resultType = QueueResultType.UNHANDLED_ERROR, emptyList(),  e.message ?: "An error occurred while building teams")
+            e.printStackTrace()
+            return MatchMakerError(queueSettings.queueName, e.message ?: "Unknown Error")
         }
+
+        if(teams.isEmpty()) {
+            return EmptyQueueResult(queueSettings.queueName)
+        }
+
+        return QueueSuccess(queueSettings.queueName, teams)
     }
 
     override fun removeFromQueue(queueEntry: QueueEntry) {

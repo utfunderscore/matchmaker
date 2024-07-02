@@ -5,7 +5,6 @@ import com.alibaba.fastjson2.TypeReference
 import io.javalin.community.routing.annotations.*
 import io.javalin.http.Context
 import org.readutf.matchmaker.api.logger
-import org.readutf.matchmaker.api.queue.Queue
 import org.readutf.matchmaker.api.queue.QueueManager
 import org.readutf.matchmaker.shared.entry.QueueEntry
 import org.readutf.matchmaker.shared.response.ApiResponse
@@ -14,6 +13,20 @@ import java.util.*
 
 @Endpoints("/api/queue")
 class QueueEndpoints(private var queueManager: QueueManager) {
+
+    @Get
+    fun getQueue(ctx: Context): ApiResponse<QueueSettings> {
+
+        val queueName = ctx.queryParam("queueName") ?: return ApiResponse.failure("Missing 'queueName' parameter")
+
+        val queue = queueManager.getQueue(queueName)
+
+        return if (queue == null)
+            ApiResponse.failure("Queue not found")
+        else
+            ApiResponse.success(queue.getSettings())
+
+    }
 
     @Get("/list")
     fun list(ctx: Context): ApiResponse<List<QueueSettings>> {
@@ -36,7 +49,7 @@ class QueueEndpoints(private var queueManager: QueueManager) {
     @Post("/join")
     fun join(ctx: Context): ApiResponse<Boolean> {
         val queueName = ctx.queryParam("name") ?: throw IllegalArgumentException("Missing query parameter 'name'")
-        val playerTeamsString = ctx.queryParam("players") ?: return ApiResponse.failure("Missing query parameter 'players'")
+        val playerTeamsString = ctx.body()
 
         val queue = queueManager.getQueue(queueName) ?: return ApiResponse.failure("Queue $queueName not found")
         val playerTeams = JSON.parseObject(
@@ -46,8 +59,8 @@ class QueueEndpoints(private var queueManager: QueueManager) {
         if(playerTeams == null) return ApiResponse.failure("Invalid player teams")
 
         try {
-            val queueEntrys = playerTeams.map { QueueEntry(it) }
-            queueEntrys.forEach { queue.addToQueue(it) }
+            val queueEntries = playerTeams.map { QueueEntry(it) }
+            queueEntries.forEach { queue.addToQueue(it) }
             queueManager.handleTick(queue)
 
             return ApiResponse.success(true)
