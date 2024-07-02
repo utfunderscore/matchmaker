@@ -8,19 +8,25 @@ import org.readutf.matchmaker.shared.TypedJson
 class QueueSocketManager {
 
     private val logger = KotlinLogging.logger {}
-    private val activeSockets = mutableListOf<WsContext>()
+    private val activeSockets = mutableMapOf<String, WsContext>()
 
     fun onSocketJoin(wsConnectContext: WsConnectContext) {
-        activeSockets.add(wsConnectContext)
+        val sessionId = wsConnectContext.sessionId()
+        activeSockets[sessionId] = wsConnectContext
+
+        wsConnectContext.send(wsConnectContext.sessionId())
     }
 
     fun onSocketLeave(wsContext: WsContext) {
-        activeSockets.remove(wsContext)
+        activeSockets.remove(wsContext.sessionId())
     }
 
-    fun notify(data: Any) {
-        activeSockets.forEach { it.send(TypedJson(data)) }
-        logger.info { "Notified ${activeSockets.size} sockets $data" }
+    fun notify(sessionId: String, typedJson: TypedJson) {
+
+        activeSockets[sessionId]?.run {
+            send(typedJson)
+        }
+
     }
 
 
