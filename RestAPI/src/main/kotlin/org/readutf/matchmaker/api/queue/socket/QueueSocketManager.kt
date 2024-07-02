@@ -3,6 +3,7 @@ package org.readutf.matchmaker.api.queue.socket
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.websocket.WsConnectContext
 import io.javalin.websocket.WsContext
+import org.readutf.matchmaker.api.utils.toString
 import org.readutf.matchmaker.shared.TypedJson
 
 class QueueSocketManager {
@@ -23,6 +24,7 @@ class QueueSocketManager {
 
     fun notify(sessionId: String, typedJson: TypedJson) {
 
+        logger.info { "Notifying session $sessionId with ${typedJson.toString(false)}" }
         activeSockets[sessionId]?.run {
             send(typedJson)
         }

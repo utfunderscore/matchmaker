@@ -29,6 +29,7 @@ class QueueManager(val socketManager: QueueSocketManager) {
         result.getAffectedSessions()
             .distinct()
             .forEach { socketManager.notify(it, TypedJson(result)) }
+
     }
 
     private fun <T : Queue> registerQueueHandler(name: String, queueHandler: QueueHandler<T>) {

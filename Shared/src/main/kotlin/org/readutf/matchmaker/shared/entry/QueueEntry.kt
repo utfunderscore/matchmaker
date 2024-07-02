@@ -10,7 +10,7 @@ open class QueueEntry(val sessionId: String, val playerIds: List<UUID>, private 
     }
 
     override fun toString(): String {
-        return "QueueEntry(playerIds=$playerIds, joinedAt=$joinedAt)"
+        return "QueueEntry(sessionId='$sessionId', playerIds=$playerIds, joinedAt=$joinedAt)"
     }
 
 

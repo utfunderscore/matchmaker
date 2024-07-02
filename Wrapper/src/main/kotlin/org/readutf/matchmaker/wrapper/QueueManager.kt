@@ -16,7 +16,7 @@ import org.readutf.matchmaker.wrapper.utils.FastJsonConvertorFactory
 import retrofit2.Retrofit
 import java.util.concurrent.TimeUnit
 
-class QueueManager(hostname: String, port: Int, private val queueListener: QueueListener) {
+class QueueManager private constructor(hostname: String, port: Int, private val queueListener: QueueListener) {
 
     private val logger = KotlinLogging.logger { }
 
@@ -34,9 +34,11 @@ class QueueManager(hostname: String, port: Int, private val queueListener: Queue
 
     private val socketClient = SocketClient(hostname, port, this)
     private val queueService = retrofit.create(QueueService::class.java)
-    private var socketId: String = socketClient.sessionIdFuture.get(1000, TimeUnit.MILLISECONDS);
+    private lateinit var socketId: String
 
-    init {
+    private suspend fun init() {
+
+        socketId = socketClient.sessionIdFuture.join()
 
         runBlocking {
             val execute = queueService.list()
@@ -99,6 +101,14 @@ class QueueManager(hostname: String, port: Int, private val queueListener: Queue
         }
 
         return null
+
+    }
+
+    companion object {
+
+        suspend fun create(hostName: String, port: Int, queueListener: QueueListener): QueueManager {
+            return QueueManager(hostName, port, queueListener).also { it.init() }
+        }
 
     }
 

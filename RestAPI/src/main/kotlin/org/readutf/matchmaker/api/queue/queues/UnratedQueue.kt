@@ -46,6 +46,19 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
             return EmptyQueueResult(queueSettings.queueName)
         }
 
+        println("result: ")
+
+        println("queue before (${queue.size}) $queue")
+
+        for (team in teams) {
+            for (queueEntry in team) {
+                queue.remove(queueEntry)
+            }
+        }
+
+        println("queue after (${queue.size}) $queue")
+
+
         return QueueSuccess(queueSettings.queueName, teams)
     }
 
