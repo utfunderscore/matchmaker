@@ -20,16 +20,20 @@ class UnratedMatchmaker(private val teamSize: Int, private val numberOfTeams: In
 
         val mutableQueue = queue.toMutableList()
 
-        val teams: MutableList<List<QueueEntry>> = ArrayList()
+        val teams = mutableListOf<List<QueueEntry>>()
 
         for (i in 0 until numberOfTeams) {
-            val combinations = findCombinations(queue, teamSize)
-            if(combinations.isEmpty()) {
-                throw TeamBuildException("Could not build teams")
+            val combinations = findCombinations(mutableQueue, teamSize)
+            if (combinations.isEmpty()) {
+                return emptyList()
             }
-            val firstCombination = combinations.first()
-            mutableQueue.removeAll(firstCombination)
-            teams.add(firstCombination)
+            val combination = combinations[0]
+
+            println(combination.map { it.playerIds }.flatten())
+
+            teams.add(combination)
+
+            mutableQueue.removeAll(combination)
         }
 
         return teams
