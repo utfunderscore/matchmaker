@@ -6,12 +6,15 @@ import org.readutf.matchmaker.api.queue.socket.QueueSocketManager
 import org.readutf.matchmaker.shared.TypedJson
 import org.readutf.matchmaker.shared.entry.QueueEntry
 import org.readutf.matchmaker.shared.result.impl.EmptyQueueResult
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class QueueManager(val socketManager: QueueSocketManager) {
 
     private val logger = KotlinLogging.logger {}
     private val queues = mutableMapOf<String, Queue>()
     private val queueToCreator = mutableMapOf<Queue, QueueHandler<*>>()
+    private val queueExecutor = mutableMapOf<Queue, ExecutorService>()
     private val queueCreators = mutableMapOf<String, QueueHandler<*>>()
 
     init {
@@ -20,23 +23,24 @@ class QueueManager(val socketManager: QueueSocketManager) {
         registerQueueHandler("unrated", UnratedQueue.UnratedQueueHandler())
     }
 
-    fun handleTick(queue: Queue) {
+    fun handleTick(queue: Queue) = getExecutor(queue).submit {
 
         val result = queue.tick()
 
-        if (result is EmptyQueueResult) return
+        if (result is EmptyQueueResult) return@submit
 
         result.getAffectedSessions()
             .distinct()
             .forEach { socketManager.notify(it, TypedJson(result)) }
-
     }
 
-    private fun <T : Queue> registerQueueHandler(name: String, queueHandler: QueueHandler<T>) {
+    fun joinQueue(queue: Queue, queueEntry: QueueEntry) {
+        TODO()
+    }
 
-        if (queueCreators.containsKey(name)) {
-            throw IllegalArgumentException("Queue creator already exists")
-        }
+
+    private fun <T : Queue> registerQueueHandler(name: String, queueHandler: QueueHandler<T>) {
+        require(!queueCreators.containsKey(name)) { "Queue creator already exists" }
 
         queueCreators[name] = queueHandler
 
@@ -49,9 +53,7 @@ class QueueManager(val socketManager: QueueSocketManager) {
     }
 
     fun registerQueue(name: String, queue: Queue): Queue {
-        if (queues.containsKey(name)) {
-            throw IllegalArgumentException("Queue already exists")
-        }
+        require(!queues.containsKey(name)) { "Queue already exists" }
 
         synchronized(queues) {
             queues[name] = queue
@@ -67,6 +69,10 @@ class QueueManager(val socketManager: QueueSocketManager) {
 
     fun getQueue(queueName: String): Queue? {
         return queues[queueName];
+    }
+
+    private fun getExecutor(queue: Queue): ExecutorService {
+        return queueExecutor.getOrDefault(queue, Executors.newSingleThreadExecutor())
     }
 
     fun getQueues(): List<Queue> {

@@ -8,7 +8,7 @@ import java.util.*
 import kotlin.collections.ArrayDeque
 
 
-class UnratedMatchmaker(private val teamSize: Int, private val numberOfTeams: Int) : Matchmaker<QueueEntry> {
+class UnratedMatchmaker(teamSize: Int, private val numberOfTeams: Int) : Matchmaker<QueueEntry> {
 
     private val addends = findAllAddends(teamSize)
 
@@ -35,7 +35,7 @@ class UnratedMatchmaker(private val teamSize: Int, private val numberOfTeams: In
         return teams
     }
 
-    fun buildTeam(sizeToEntry: MutableMap<Int, ArrayDeque<QueueEntry>>): MutableList<QueueEntry> {
+    private fun buildTeam(sizeToEntry: MutableMap<Int, ArrayDeque<QueueEntry>>): MutableList<QueueEntry> {
 
         addends.map { it.numberOfSizes }.forEach { sizes ->
 

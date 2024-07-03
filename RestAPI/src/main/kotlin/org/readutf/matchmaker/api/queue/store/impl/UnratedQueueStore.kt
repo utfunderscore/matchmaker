@@ -27,7 +27,7 @@ class UnratedQueueStore : QueueStore<UnratedQueue> {
 
         if (!file.exists()) {
             file.createNewFile()
-            file.writeText(JSON.toJSONString(VersionedData(currentVersion, VersionedData(currentVersion, emptyList<UnratedQueueSettings>()))))
+            file.writeText(JSON.toJSONString(VersionedData(currentVersion, emptyList<UnratedQueueSettings>())))
             return emptyList()
         }
 

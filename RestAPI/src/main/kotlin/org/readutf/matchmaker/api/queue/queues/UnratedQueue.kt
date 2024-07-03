@@ -1,9 +1,11 @@
 package org.readutf.matchmaker.api.queue.queues
 
 import com.alibaba.fastjson2.annotation.JSONField
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.http.Context
 import org.readutf.matchmaker.api.queue.Queue
 import org.readutf.matchmaker.api.queue.QueueHandler
+import org.readutf.matchmaker.api.queue.exception.TeamBuildException
 import org.readutf.matchmaker.api.queue.matchmaker.UnratedMatchmaker
 import org.readutf.matchmaker.api.queue.store.QueueStore
 import org.readutf.matchmaker.api.queue.store.impl.UnratedQueueStore
@@ -18,6 +20,8 @@ import java.util.*
 
 class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueueSettings) : Queue {
 
+    private val logger = KotlinLogging.logger {  }
+
     private val queue = mutableListOf<QueueEntry>()
     private val playerTracker = mutableMapOf<UUID, QueueEntry>()
     private val matchmaker = UnratedMatchmaker(queueSettings.teamSize, queueSettings.numberOfTeams)
@@ -27,8 +31,8 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
     }
 
     override fun addToQueue(queueEntry: QueueEntry) {
-        queueEntry.playerIds.any { playerTracker.containsKey(it) }.let { it ->
-            if (it) return
+        queueEntry.playerIds.any { playerTracker.containsKey(it) }.let { inQueue ->
+            if (inQueue) return
             queue.add(queueEntry)
             queueEntry.playerIds.forEach { playerTracker[it] = queueEntry }
         }
@@ -36,9 +40,9 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
 
     override fun tick(): QueueResult {
         val teams = try {
+            logger.error { "Queue failed to tick " }
             matchmaker.buildTeams(queue)
-        } catch (e: Exception) {
-            e.printStackTrace()
+        } catch (e: TeamBuildException) {
             return MatchMakerError(queueSettings.queueName, queue, e.message ?: "Unknown Error")
         }
 
@@ -59,8 +63,8 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
     }
 
     override fun removeFromQueue(queueEntry: QueueEntry) {
-        queueEntry.playerIds.any { playerTracker.containsKey(it) }.let { it ->
-            if (!it) return
+        queueEntry.playerIds.any { playerTracker.containsKey(it) }.let { inQueue ->
+            if (!inQueue) return
             queue.remove(queueEntry)
             queueEntry.playerIds.forEach { playerTracker.remove(it) }
         }

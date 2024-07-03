@@ -2,14 +2,15 @@ package org.readutf.matchmaker.api.queue.endpoints
 
 import com.alibaba.fastjson2.JSON
 import com.alibaba.fastjson2.TypeReference
-import io.javalin.community.routing.annotations.*
+import io.javalin.community.routing.annotations.Endpoints
+import io.javalin.community.routing.annotations.Get
+import io.javalin.community.routing.annotations.Post
+import io.javalin.community.routing.annotations.Put
 import io.javalin.http.Context
-import org.readutf.matchmaker.api.logger
 import org.readutf.matchmaker.api.queue.QueueManager
 import org.readutf.matchmaker.shared.entry.QueueEntry
 import org.readutf.matchmaker.shared.response.ApiResponse
 import org.readutf.matchmaker.shared.settings.QueueSettings
-import java.util.*
 
 @Endpoints("/api/queue")
 class QueueEndpoints(private var queueManager: QueueManager) {
@@ -29,7 +30,7 @@ class QueueEndpoints(private var queueManager: QueueManager) {
     }
 
     @Get("/list")
-    fun list(ctx: Context): ApiResponse<List<QueueSettings>> {
+    fun list(): ApiResponse<List<QueueSettings>> {
         return ApiResponse.success(queueManager.getQueues().map { it.getSettings() })
     }
 
@@ -56,21 +57,18 @@ class QueueEndpoints(private var queueManager: QueueManager) {
             playerTeamsString,
             object : TypeReference<List<QueueEntry>>() {})
 
-        if(queueEntries == null) return ApiResponse.failure("Invalid player teams")
+        if (queueEntries == null) return ApiResponse.failure("Invalid player teams")
 
-        try {
-            queueEntries.forEach { queue.addToQueue(it) }
-            queueManager.handleTick(queue)
 
-            return ApiResponse.success(true)
-        } catch (e: Exception) {
-            logger.error(e) { "An error occurred while adding players to queue $queueName" }
-            return ApiResponse.failure(e.message ?: "An error occurred")
-        }
+        queueEntries.forEach { entry -> queueManager.joinQueue(queue, entry) }
+        queueManager.handleTick(queue)
+
+        return ApiResponse.success(true)
+
     }
 
     @Get("/types")
-    fun listCreators(ctx: Context): ApiResponse<List<String>> {
+    fun listCreators(): ApiResponse<List<String>> {
         return ApiResponse.success(queueManager.getQueueCreators())
     }
 

@@ -49,7 +49,7 @@ private fun copyDefaultConfig(baseDir: File): File {
         logger.info { "Config.yml not found, copying defaults." }
 
         val defaultConfigResource = MatchmakerApi::class.java.getResourceAsStream("/config.yml")
-            ?: throw IllegalStateException("Default config not found.")
+            ?: error("Default config not found")
 
         Files.copy(defaultConfigResource, externalConfig.toPath())
     }
