@@ -5,10 +5,10 @@ import io.javalin.http.Context
 import org.readutf.matchmaker.api.queue.Queue
 import org.readutf.matchmaker.api.queue.QueueHandler
 import org.readutf.matchmaker.api.queue.matchmaker.UnratedMatchmaker
-import org.readutf.matchmaker.shared.result.QueueResult
 import org.readutf.matchmaker.api.queue.store.QueueStore
 import org.readutf.matchmaker.api.queue.store.impl.UnratedQueueStore
 import org.readutf.matchmaker.shared.entry.QueueEntry
+import org.readutf.matchmaker.shared.result.QueueResult
 import org.readutf.matchmaker.shared.result.impl.EmptyQueueResult
 import org.readutf.matchmaker.shared.result.impl.MatchMakerError
 import org.readutf.matchmaker.shared.result.impl.QueueSuccess
@@ -39,12 +39,25 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
             matchmaker.buildTeams(queue)
         } catch (e: Exception) {
             e.printStackTrace()
-            return MatchMakerError(queueSettings.queueName, e.message ?: "Unknown Error")
+            return MatchMakerError(queueSettings.queueName, queue, e.message ?: "Unknown Error")
         }
 
-        if(teams.isEmpty()) {
+        if (teams.isEmpty()) {
             return EmptyQueueResult(queueSettings.queueName)
         }
+
+        println("result: ")
+
+        println("queue before (${queue.size}) $queue")
+
+        for (team in teams) {
+            for (queueEntry in team) {
+                queue.remove(queueEntry)
+            }
+        }
+
+        println("queue after (${queue.size}) $queue")
+
 
         return QueueSuccess(queueSettings.queueName, teams)
     }

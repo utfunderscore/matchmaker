@@ -14,10 +14,11 @@ import org.readutf.matchmaker.wrapper.api.QueueService
 import org.readutf.matchmaker.wrapper.socket.SocketClient
 import org.readutf.matchmaker.wrapper.utils.FastJsonConvertorFactory
 import retrofit2.Retrofit
+import java.util.concurrent.TimeUnit
 
-class QueueManager(hostname: String, port: Int, val queueListener: QueueListener) {
+class QueueManager private constructor(hostname: String, port: Int, private val queueListener: QueueListener) {
 
-    val logger = KotlinLogging.logger { }
+    private val logger = KotlinLogging.logger { }
 
     private val queues = mutableMapOf<String, Queue>()
 
@@ -32,16 +33,18 @@ class QueueManager(hostname: String, port: Int, val queueListener: QueueListener
         .build()
 
     private val socketClient = SocketClient(hostname, port, this)
-
     private val queueService = retrofit.create(QueueService::class.java)
+    private lateinit var socketId: String
 
-    init {
+    private suspend fun init() {
+
+        socketId = socketClient.sessionIdFuture.join()
 
         runBlocking {
             val execute = queueService.list()
 
             execute.response?.forEach {
-                queues[it.queueName] = Queue(it, queueService)
+                queues[it.queueName] = Queue(socketId, it, queueService)
             }
         }
 
@@ -56,7 +59,7 @@ class QueueManager(hostname: String, port: Int, val queueListener: QueueListener
 
             val queueSettings = apiResponse.response!!
 
-            val queue = Queue(queueSettings, queueService)
+            val queue = Queue(socketId, queueSettings, queueService)
             queues[queueSettings.queueName] = queue
             return@async queue;
         }
@@ -77,7 +80,7 @@ class QueueManager(hostname: String, port: Int, val queueListener: QueueListener
         when (queueResult) {
 
             is QueueSuccess -> {
-                queueListener.onQueueSuccess(queue, queueResult.teams)
+                queueListener.onQueueSuccess(queue, queueResult.queueEntries)
             }
 
             is MatchMakerError -> {
@@ -94,10 +97,18 @@ class QueueManager(hostname: String, port: Int, val queueListener: QueueListener
         val queueResult = queueService.getQueue(queueName)
 
         if (queueResult.success && queueResult.response != null) {
-            return Queue(queueResult.response!!, queueService)
+            return Queue(socketId, queueResult.response!!, queueService)
         }
 
         return null
+
+    }
+
+    companion object {
+
+        suspend fun create(hostName: String, port: Int, queueListener: QueueListener): QueueManager {
+            return QueueManager(hostName, port, queueListener).also { it.init() }
+        }
 
     }
 

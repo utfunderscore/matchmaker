@@ -3,6 +3,7 @@ package org.readutf.matchmaker.cli
 import com.alibaba.fastjson2.JSON
 import com.alibaba.fastjson2.TypeReference
 import io.github.oshai.kotlinlogging.KotlinLogging
+import kotlinx.coroutines.runBlocking
 import org.readutf.matchmaker.shared.entry.QueueEntry
 import org.readutf.matchmaker.shared.result.QueueResult
 import org.readutf.matchmaker.wrapper.Queue
@@ -21,7 +22,7 @@ fun main() {
 //
 //    println(JSON.toJSONString(listOf(listOf(UUID.randomUUID()), listOf(UUID.randomUUID()))))
 
-    val queueManager = QueueManager("localhost", 8280, SimpleQueueListener())
+    val queueManager = runBlocking { QueueManager.create("localhost", 8280, SimpleQueueListener()) }
 
     val queue = queueManager.getQueue("test")
 

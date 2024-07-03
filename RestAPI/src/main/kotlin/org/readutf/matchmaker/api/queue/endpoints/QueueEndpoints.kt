@@ -52,14 +52,13 @@ class QueueEndpoints(private var queueManager: QueueManager) {
         val playerTeamsString = ctx.body()
 
         val queue = queueManager.getQueue(queueName) ?: return ApiResponse.failure("Queue $queueName not found")
-        val playerTeams = JSON.parseObject(
+        val queueEntries = JSON.parseObject(
             playerTeamsString,
-            object : TypeReference<List<List<UUID>>>() {})
+            object : TypeReference<List<QueueEntry>>() {})
 
-        if(playerTeams == null) return ApiResponse.failure("Invalid player teams")
+        if(queueEntries == null) return ApiResponse.failure("Invalid player teams")
 
         try {
-            val queueEntries = playerTeams.map { QueueEntry(it) }
             queueEntries.forEach { queue.addToQueue(it) }
             queueManager.handleTick(queue)
 

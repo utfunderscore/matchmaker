@@ -3,6 +3,8 @@ package org.readutf.matchmaker.api.queue
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.readutf.matchmaker.api.queue.queues.UnratedQueue
 import org.readutf.matchmaker.api.queue.socket.QueueSocketManager
+import org.readutf.matchmaker.shared.TypedJson
+import org.readutf.matchmaker.shared.entry.QueueEntry
 import org.readutf.matchmaker.shared.result.impl.EmptyQueueResult
 
 class QueueManager(val socketManager: QueueSocketManager) {
@@ -24,7 +26,10 @@ class QueueManager(val socketManager: QueueSocketManager) {
 
         if (result is EmptyQueueResult) return
 
-        socketManager.notify(result)
+        result.getAffectedSessions()
+            .distinct()
+            .forEach { socketManager.notify(it, TypedJson(result)) }
+
     }
 
     private fun <T : Queue> registerQueueHandler(name: String, queueHandler: QueueHandler<T>) {
