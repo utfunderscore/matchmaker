@@ -30,9 +30,7 @@ class QueueEndpoints(private var queueManager: QueueManager) {
     }
 
     @Get("/list")
-    fun list(): ApiResponse<List<QueueSettings>> {
-        return ApiResponse.success(queueManager.getQueues().map { it.getSettings() })
-    }
+    fun list(): ApiResponse<List<QueueSettings>> = ApiResponse.success(queueManager.getQueues().toList())
 
     @Put("{id}/create/")
     fun create(ctx: Context): ApiResponse<QueueSettings> {
@@ -40,7 +38,7 @@ class QueueEndpoints(private var queueManager: QueueManager) {
 
         val queueName = ctx.queryParam("name") ?: throw IllegalArgumentException("Missing query parameter 'name'")
         if (queueManager.getQueue(queueName) != null) return ApiResponse.failure("Queue already exists")
-        val queueCreator = queueManager.getQueueCreator(id) ?: return ApiResponse.failure("Queue creator $id not found")
+        val queueCreator = queueManager.getQueueHandler(id) ?: return ApiResponse.failure("Queue creator $id not found")
         val queue = queueCreator.createQueue(queueName, ctx)
 
         queueManager.registerQueue(queueName, queue)
@@ -59,9 +57,7 @@ class QueueEndpoints(private var queueManager: QueueManager) {
 
         if (queueEntries == null) return ApiResponse.failure("Invalid player teams")
 
-
         queueEntries.forEach { entry -> queueManager.joinQueue(queue, entry) }
-        queueManager.handleTick(queue)
 
         return ApiResponse.success(true)
 

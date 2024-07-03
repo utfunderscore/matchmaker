@@ -91,11 +91,6 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
             return UnratedQueueStore()
         }
 
-        override fun cast(queue: Queue): UnratedQueue {
-            return queue as UnratedQueue
-        }
-
-
     }
 
 }
