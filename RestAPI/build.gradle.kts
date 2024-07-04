@@ -58,7 +58,14 @@ dependencies {
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.23.1")
 
     //Json
-    implementation("com.alibaba:fastjson:2.0.51")}
+    implementation("com.alibaba:fastjson:2.0.51")
+
+    //Commands
+    implementation("com.github.Revxrsal.Lamp:common:3.2.1")
+
+    // Add your specific platform module here
+    implementation("com.github.Revxrsal.Lamp:cli:3.2.1")
+}
 
 tasks.test {
     useJUnitPlatform()

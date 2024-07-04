@@ -17,4 +17,6 @@ interface Queue {
 
     fun getSettings(): QueueSettings
 
+    fun getPlayersInQueue(): List<QueueEntry>
+
 }

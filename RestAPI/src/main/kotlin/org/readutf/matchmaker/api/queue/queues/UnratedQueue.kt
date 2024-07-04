@@ -16,6 +16,7 @@ import org.readutf.matchmaker.shared.result.impl.MatchMakerError
 import org.readutf.matchmaker.shared.result.impl.QueueSuccess
 import org.readutf.matchmaker.shared.settings.UnratedQueueSettings
 import java.util.*
+import kotlin.math.log
 
 
 class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueueSettings) : Queue {
@@ -34,7 +35,10 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
         logger.info { "Adding to queue $queueEntry" }
 
         queueEntry.playerIds.any { playerTracker.containsKey(it) }.let { inQueue ->
-            if (inQueue) return
+            if (inQueue) {
+                logger.info { "Player already in queue"}
+                return
+            }
             queue.add(queueEntry)
             queueEntry.playerIds.forEach { playerTracker[it] = queueEntry }
         }
@@ -44,12 +48,16 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
 
         logger.info { "Ticking queue ${queueSettings.queueName}" }
 
+        logger.info { "Before ${queue.size}" }
+
         val teams = try {
             matchmaker.buildTeams(queue)
         } catch (e: TeamBuildException) {
             logger.error(e) { "Error building teams" }
             return MatchMakerError(queueSettings.queueName, queue, e.message ?: "Unknown Error")
         }
+
+        logger.info { "After ${queue.size}" }
 
         if (teams.isEmpty()) {
             return EmptyQueueResult(queueSettings.queueName)
@@ -74,6 +82,10 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
 
     override fun getSettings(): UnratedQueueSettings {
         return queueSettings
+    }
+
+    override fun getPlayersInQueue(): List<QueueEntry> {
+        return queue
     }
 
     class UnratedQueueHandler : QueueHandler<UnratedQueue> {

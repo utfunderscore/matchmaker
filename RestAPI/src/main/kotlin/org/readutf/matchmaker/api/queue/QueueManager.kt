@@ -24,7 +24,6 @@ class QueueManager(val socketManager: QueueSocketManager) {
     }
 
     fun joinQueue(queue: Queue, queueEntry: QueueEntry): CompletableFuture<Unit> {
-        logger.info { "Adding team to queue" }
         return runOnQueue(queue) { queue.addToQueue(queueEntry) }
     }
 
