@@ -26,6 +26,8 @@ class UnratedMatchmaker(teamSize: Int, private val numberOfTeams: Int) : Matchma
         val teams = mutableListOf<List<QueueEntry>>()
         for (i in 0 until numberOfTeams) {
             val team = buildTeam(sizeToEntry)
+            if(team.isEmpty()) return emptyList()
+
             teams.add(team)
 
             for (queueEntry in team) {
@@ -55,7 +57,7 @@ class UnratedMatchmaker(teamSize: Int, private val numberOfTeams: Int) : Matchma
                 return teams
             }
         }
-        throw TeamBuildException("Not enough players")
+        return mutableListOf()
     }
 
 

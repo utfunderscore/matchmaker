@@ -14,7 +14,6 @@ import org.readutf.matchmaker.wrapper.api.QueueService
 import org.readutf.matchmaker.wrapper.socket.SocketClient
 import org.readutf.matchmaker.wrapper.utils.FastJsonConvertorFactory
 import retrofit2.Retrofit
-import java.util.concurrent.TimeUnit
 
 class QueueManager private constructor(hostname: String, port: Int, private val queueListener: QueueListener) {
 
@@ -25,7 +24,7 @@ class QueueManager private constructor(hostname: String, port: Int, private val 
     private val retrofit = Retrofit.Builder()
         .client(
             OkHttpClient.Builder()
-                .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
+//                .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
                 .build()
         )
         .baseUrl("http://$hostname:$port/")
@@ -34,7 +33,7 @@ class QueueManager private constructor(hostname: String, port: Int, private val 
 
     private val socketClient = SocketClient(hostname, port, this)
     private val queueService = retrofit.create(QueueService::class.java)
-    private lateinit var socketId: String
+    lateinit var socketId: String
 
     private suspend fun init() {
 

@@ -39,9 +39,11 @@ dependencies {
     api("com.alibaba:fastjson:2.0.51")
     api("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     api("com.squareup.okhttp3:logging-interceptor:4.11.0")
+    api("io.github.oshai:kotlin-logging-jvm:5.1.0")
+
+
     //Logging
     implementation("org.apache.logging.log4j:log4j-api:2.14.1")
-    api("io.github.oshai:kotlin-logging-jvm:5.1.0")
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.23.1")
 
 }

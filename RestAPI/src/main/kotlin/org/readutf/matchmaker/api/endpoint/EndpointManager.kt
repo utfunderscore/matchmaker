@@ -8,6 +8,9 @@ import org.readutf.matchmaker.api.logger
 import org.readutf.matchmaker.api.queue.socket.QueueSocketManager
 import org.readutf.matchmaker.api.utils.FastJsonMapper
 import org.readutf.matchmaker.shared.response.ApiResponse
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Future
+import java.util.function.Supplier
 
 
 class EndpointManager(
@@ -23,11 +26,12 @@ class EndpointManager(
         config.jetty.defaultPort = endpointConfig.port
 
         config.jsonMapper(FastJsonMapper)
-        config.bundledPlugins.enableDevLogging()
+//        config.bundledPlugins.enableDevLogging()
         config.bundledPlugins.enableCors { cors -> cors.addRule { it.anyHost() } }
         config.router.mount(Annotated) { routing ->
 
             routing.registerResultHandler(ApiResponse::class.java) { ctx, result -> ctx.json(result) }
+            routing.registerResultHandler(CompletableFuture::class.java) { ctx, result -> ctx.future { result } }
 
             endpoints.forEach { routing.registerEndpoints(it) }
         }

@@ -5,11 +5,10 @@ import org.readutf.matchmaker.api.queue.queues.UnratedQueue
 import org.readutf.matchmaker.api.queue.socket.QueueSocketManager
 import org.readutf.matchmaker.shared.TypedJson
 import org.readutf.matchmaker.shared.entry.QueueEntry
+import org.readutf.matchmaker.shared.result.QueueResult
 import org.readutf.matchmaker.shared.result.impl.EmptyQueueResult
 import org.readutf.matchmaker.shared.settings.QueueSettings
-import java.util.concurrent.CompletableFuture
-import java.util.concurrent.ExecutorService
-import java.util.concurrent.Executors
+import java.util.concurrent.*
 
 class QueueManager(val socketManager: QueueSocketManager) {
 
@@ -24,29 +23,30 @@ class QueueManager(val socketManager: QueueSocketManager) {
         registerQueueHandler("unrated", UnratedQueue.UnratedQueueHandler())
     }
 
-
-    fun joinQueue(queue: Queue, queueEntry: QueueEntry): CompletableFuture<Void> {
-        return CompletableFuture.allOf(
-            /*Add player to queue*/
-            runOnQueue(queue) { queue.addToQueue(queueEntry) },
-            /*Tick the queue to produce a result*/
-            handleTick(queue)
-        )
+    fun joinQueue(queue: Queue, queueEntry: QueueEntry): CompletableFuture<Unit> {
+        logger.info { "Adding team to queue" }
+        return runOnQueue(queue) { queue.addToQueue(queueEntry) }
     }
 
     fun leaveQueue(queue: Queue, queueEntry: QueueEntry) = getExecutor(queue).submit {
         queue.removeFromQueue(queueEntry)
     }
 
-    private fun handleTick(queue: Queue) = runOnQueue(queue) {
+    fun tickQueue(queue: Queue) = runOnQueue(queue) {
 
-        val result = queue.tick()
+        var previousResult: QueueResult? = null
 
-        if (result is EmptyQueueResult) return@runOnQueue
+        val results = mutableListOf<QueueResult>()
+        while (previousResult == null || previousResult !is EmptyQueueResult) {
+            previousResult = queue.tick()
+            results.add(previousResult)
+        }
 
-        result.getAffectedSessions()
-            .distinct()
-            .forEach { socketManager.notify(it, TypedJson(result)) }
+        results.forEach { result ->
+            result.getAffectedSessions()
+                .distinct()
+                .forEach { session -> socketManager.notify(session, TypedJson(result)) }
+        }
     }
 
 
@@ -98,7 +98,7 @@ class QueueManager(val socketManager: QueueSocketManager) {
      * @return the executor for the given queue
      */
     private fun getExecutor(queue: Queue): ExecutorService =
-        queueExecutor.getOrDefault(queue, Executors.newSingleThreadExecutor())
+        queueExecutor.getOrDefault(queue, ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, LinkedBlockingQueue()))
 
     /**
      * @return the settings of all queues which includes custom properties

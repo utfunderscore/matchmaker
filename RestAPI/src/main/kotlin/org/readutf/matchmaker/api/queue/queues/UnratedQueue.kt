@@ -31,6 +31,8 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
     }
 
     override fun addToQueue(queueEntry: QueueEntry) {
+        logger.info { "Adding to queue $queueEntry" }
+
         queueEntry.playerIds.any { playerTracker.containsKey(it) }.let { inQueue ->
             if (inQueue) return
             queue.add(queueEntry)
@@ -39,10 +41,13 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
     }
 
     override fun tick(): QueueResult {
+
+        logger.info { "Ticking queue ${queueSettings.queueName}" }
+
         val teams = try {
-            logger.error { "Queue failed to tick " }
             matchmaker.buildTeams(queue)
         } catch (e: TeamBuildException) {
+            logger.error(e) { "Error building teams" }
             return MatchMakerError(queueSettings.queueName, queue, e.message ?: "Unknown Error")
         }
 
@@ -55,9 +60,6 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
                 queue.remove(queueEntry)
             }
         }
-
-        println("queue after (${queue.size}) $queue")
-
 
         return QueueSuccess(queueSettings.queueName, teams)
     }

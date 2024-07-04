@@ -40,7 +40,6 @@ class FastJsonConvertorFactory : Converter.Factory() {
 
     class FastJsonRequestBodyConverter<T> : Converter<T, RequestBody> {
         override fun convert(value: T): RequestBody {
-            println("RESULT: " + JSON.toJSONString(value))
             return RequestBody.create("application/json".toMediaTypeOrNull(), JSON.toJSONString(value))
         }
     }

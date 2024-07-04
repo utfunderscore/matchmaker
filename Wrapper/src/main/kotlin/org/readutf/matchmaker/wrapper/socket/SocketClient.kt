@@ -29,8 +29,6 @@ class SocketClient(hostName: String, port: Int, val queueManager: QueueManager) 
 
     override fun onTextMessage(websocket: WebSocket?, text: String?) {
 
-        println("received: $text")
-
         if(!sessionIdFuture.isDone) {
             sessionIdFuture.complete(text)
             return

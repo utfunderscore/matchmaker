@@ -5,4 +5,4 @@ rootProject.name = "matchmaker"
 include("RestAPI")
 include("Shared")
 include("Wrapper")
-include("CLI-Client")
+include("Demo")
