@@ -57,7 +57,7 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
 
         for (team in teams) {
             for (queueEntry in team) {
-                queue.remove(queueEntry)
+                removeFromQueue(queueEntry)
             }
         }
 
