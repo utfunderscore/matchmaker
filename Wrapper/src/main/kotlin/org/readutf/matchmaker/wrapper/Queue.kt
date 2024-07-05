@@ -23,7 +23,7 @@ class Queue(private val sessionId: String, queueSettings: QueueSettings, private
     @Throws(Exception::class)
     fun join(players: List<List<UUID>>): Deferred<Unit> = runBlocking {
         async {
-            val joinResult = queueService.join(queueName, players.map { QueueEntry(sessionId, it) })
+            val joinResult = queueService.join(queueName, players.map { QueueEntry(sessionId = sessionId, playerIds = it) })
 
             if(!joinResult.success) throw Exception("Failed to join queue")
 

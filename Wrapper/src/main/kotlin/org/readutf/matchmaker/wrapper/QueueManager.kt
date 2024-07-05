@@ -6,7 +6,6 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
-import okhttp3.logging.HttpLoggingInterceptor
 import org.readutf.matchmaker.shared.result.QueueResult
 import org.readutf.matchmaker.shared.result.impl.MatchMakerError
 import org.readutf.matchmaker.shared.result.impl.QueueSuccess
