@@ -81,7 +81,7 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
     }
 
     override fun invalidateSession(sessionId: String) {
-        
+        queue.filter { it.sessionId == sessionId }.forEach { removeFromQueue(it) }
     }
 
     override fun getSettings(): UnratedQueueSettings {
