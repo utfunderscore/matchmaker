@@ -10,8 +10,8 @@ import revxrsal.commands.cli.ConsoleCommandHandler
 
 class MatchmakerApi(mainConfig: MainConfig) {
 
-    private val queueSocketManager = QueueSocketManager()
-    private val queueManager = QueueManager(queueSocketManager)
+    private val queueSocketManager = QueueSocketManager(this)
+    val queueManager = QueueManager(queueSocketManager)
     private val endpointManager = EndpointManager(
         mainConfig.endpointConfig,
         queueSocketManager,

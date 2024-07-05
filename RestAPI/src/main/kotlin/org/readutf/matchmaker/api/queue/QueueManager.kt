@@ -21,6 +21,7 @@ class QueueManager(val socketManager: QueueSocketManager) {
         logger.info { "Initializing QueueManager" }
 
         registerQueueHandler("unrated", UnratedQueue.UnratedQueueHandler())
+
     }
 
     fun joinQueue(queue: Queue, queueEntry: QueueEntry): CompletableFuture<Unit> {
@@ -48,6 +49,12 @@ class QueueManager(val socketManager: QueueSocketManager) {
         }
     }
 
+    fun invalideSession(sessionId: String) {
+        for (queue in queues.values) {
+            runOnQueue(queue, 1) { queue.invalideSession(sessionId) }
+        }
+    }
+
 
     private fun <T : Queue> registerQueueHandler(name: String, queueHandler: QueueHandler<T>) {
         require(!queueCreators.containsKey(name)) { "Queue creator already exists" }
@@ -57,8 +64,6 @@ class QueueManager(val socketManager: QueueSocketManager) {
         queueHandler.getQueueStore().loadQueues().forEach { queue: Queue ->
             registerQueue(queue.getSettings().queueName, queue)
         }
-
-        println("queues: $queues")
 
     }
 
@@ -82,7 +87,15 @@ class QueueManager(val socketManager: QueueSocketManager) {
      * @return a future that will be completed when the task is done
      */
     fun <T> runOnQueue(queue: Queue, runnable: () -> T): CompletableFuture<T> =
+        runOnQueue(queue, 5, runnable)
+
+    /**
+     * Run a task on a specific queue
+     * @return a future that will be completed when the task is done
+     */
+    fun <T> runOnQueue(queue: Queue, priority: Int, runnable: () -> T): CompletableFuture<T> =
         CompletableFuture.supplyAsync(runnable, getExecutor(queue))
+
 
     /**
      * Get a queue by its name
@@ -97,7 +110,8 @@ class QueueManager(val socketManager: QueueSocketManager) {
      * @return the executor for the given queue
      */
     private fun getExecutor(queue: Queue): ExecutorService =
-        queueExecutor.getOrDefault(queue, ThreadPoolExecutor(1, 1, 0, TimeUnit.MILLISECONDS, LinkedBlockingQueue()))
+        queueExecutor.getOrDefault(queue, ThreadPoolExecutor(1, 1, 0,
+            TimeUnit.MILLISECONDS, PriorityBlockingQueue()))
 
     /**
      * @return the settings of all queues which includes custom properties

@@ -3,9 +3,11 @@ package org.readutf.matchmaker.api.queue.socket
 import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.websocket.WsConnectContext
 import io.javalin.websocket.WsContext
+import org.readutf.matchmaker.api.MatchmakerApi
+import org.readutf.matchmaker.api.queue.QueueManager
 import org.readutf.matchmaker.shared.TypedJson
 
-class QueueSocketManager {
+class QueueSocketManager(val matchmakerApi: MatchmakerApi) {
 
     private val logger = KotlinLogging.logger {}
     private val activeSockets = mutableMapOf<String, WsContext>()
@@ -15,6 +17,7 @@ class QueueSocketManager {
         activeSockets[sessionId] = wsConnectContext
 
         wsConnectContext.send(wsConnectContext.sessionId())
+        matchmakerApi.queueManager.invalideSession(sessionId)
     }
 
     fun onSocketLeave(wsContext: WsContext) {

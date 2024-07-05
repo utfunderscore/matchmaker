@@ -15,6 +15,8 @@ interface Queue {
 
     fun removeFromQueue(queueEntry: QueueEntry)
 
+    fun invalideSession(sessionId: String)
+
     fun getSettings(): QueueSettings
 
     fun getPlayersInQueue(): List<QueueEntry>

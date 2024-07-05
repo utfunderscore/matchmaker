@@ -8,6 +8,10 @@ class TypedJson(any: Any) {
     val type = any::class.qualifiedName
     val data = any
 
+    override fun toString(): String {
+        return "TypedJson(type=$type, data=$data)"
+    }
+
     companion object {
 
         fun fromString(jsonString: String): TypedJson {
