@@ -17,7 +17,6 @@ import org.readutf.matchmaker.shared.result.impl.QueueSuccess
 import org.readutf.matchmaker.shared.settings.UnratedQueueSettings
 import panda.std.Result
 import java.util.*
-import kotlin.math.log
 
 
 class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueueSettings) : Queue {
@@ -98,15 +97,15 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
 
     class UnratedQueueHandler : QueueHandler<UnratedQueue> {
 
-        override fun createQueue(queueName: String, context: Context): UnratedQueue {
+        override fun createQueue(queueName: String, context: Context): Result<UnratedQueue, String> {
 
             val teamSize = context.queryParam("teamSize")
-                ?: throw IllegalArgumentException("teamSize is required")
+                ?: return Result.error("Parameter 'teamSize' is required")
 
             val numberOfTeams = context.queryParam("numberOfTeams")
-                ?: throw IllegalArgumentException("numberOfTeams is required")
+                ?: return Result.error("Parameter 'numberOfTeams' is required")
 
-            return UnratedQueue(UnratedQueueSettings(queueName, teamSize.toInt(), numberOfTeams.toInt()))
+            return Result.ok(UnratedQueue(UnratedQueueSettings(queueName, teamSize.toInt(), numberOfTeams.toInt())))
         }
 
         override fun getQueueStore(): QueueStore<UnratedQueue> {

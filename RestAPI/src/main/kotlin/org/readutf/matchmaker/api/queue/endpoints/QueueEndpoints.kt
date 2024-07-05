@@ -39,18 +39,24 @@ class QueueEndpoints(private var queueManager: QueueManager) {
     fun create(ctx: Context): ApiResponse<QueueSettings> {
         val id = ctx.pathParam("id")
 
-        val queueName = ctx.queryParam("name") ?: throw IllegalArgumentException("Missing query parameter 'name'")
-        if (queueManager.getQueue(queueName) != null) return ApiResponse.failure("Queue already exists")
+        val queueName = ctx.queryParam("name") ?: return ApiResponse.failure("Missing query parameter 'name'")
+        if (queueManager.getQueue(queueName) != null) return ApiResponse.failure("Queue $queueName already exists")
         val queueCreator = queueManager.getQueueHandler(id) ?: return ApiResponse.failure("Queue creator $id not found")
         val queue = queueCreator.createQueue(queueName, ctx)
 
-        queueManager.registerQueue(queueName, queue)
-        return ApiResponse.success(queue.getSettings())
+        if (queue.isErr) return ApiResponse.failure(queue.error)
+
+        queueManager.registerQueue(queueName, queue.get())
+
+        return ApiResponse.success(queue.get().getSettings())
     }
 
     @Post("/join")
     fun join(ctx: Context) {
-        val queueName = ctx.queryParam("name") ?: throw IllegalArgumentException("Missing query parameter 'name'")
+        val queueName = ctx.queryParam("name") ?: run {
+            ctx.json(ApiResponse.failure<Boolean>("Missing query parameter 'name'"))
+            return
+        }
         val playerTeamsString = ctx.body()
 
         val queue = queueManager.getQueue(queueName)

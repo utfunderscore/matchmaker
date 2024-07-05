@@ -65,9 +65,6 @@ dependencies {
 
     // Add your specific platform module here
     implementation("com.github.Revxrsal.Lamp:cli:3.2.1")
-
-    implementation("org.panda-lang:expressible:1.3.6") // Core library
-    implementation("org.panda-lang:expressible-kt:1.3.6") // Kotlin extensions
 }
 
 tasks.test {
