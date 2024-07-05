@@ -33,6 +33,9 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
 
     override fun addToQueue(queueEntry: QueueEntry): Result<Boolean, String> {
 
+        if (queueEntry.playerIds.size > queueSettings.teamSize) return Result.error("Too many players in queue entry")
+        if (queueEntry.playerIds.isEmpty()) return Result.error("No players in queue entry")
+
         if (queueEntry.playerIds.any { playerTracker.containsKey(it) }) {
             logger.info { "Player already in queue" }
             return Result.error("Player already in queue")
