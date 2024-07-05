@@ -80,8 +80,8 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
         }
     }
 
-    override fun invalideSession(sessionId: String) {
-
+    override fun invalidateSession(sessionId: String) {
+        
     }
 
     override fun getSettings(): UnratedQueueSettings {

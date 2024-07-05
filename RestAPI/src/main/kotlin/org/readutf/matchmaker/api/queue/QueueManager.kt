@@ -51,7 +51,7 @@ class QueueManager(val socketManager: QueueSocketManager) {
 
     fun invalideSession(sessionId: String) {
         for (queue in queues.values) {
-            runOnQueue(queue, 1) { queue.invalideSession(sessionId) }
+            runOnQueue(queue, 1) { queue.invalidateSession(sessionId) }
         }
     }
 
