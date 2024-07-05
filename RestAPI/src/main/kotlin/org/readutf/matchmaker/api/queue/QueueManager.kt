@@ -51,7 +51,7 @@ class QueueManager(val socketManager: QueueSocketManager) {
 
     fun invalidateSession(sessionId: String) {
         for (queue in queues.values) {
-            runOnQueue(queue, 1) { queue.invalidateSession(sessionId) }
+            runOnQueue(queue) { queue.invalidateSession(sessionId) }
         }
     }
 
@@ -86,13 +86,6 @@ class QueueManager(val socketManager: QueueSocketManager) {
      * @return a future that will be completed when the task is done
      */
     fun <T> runOnQueue(queue: Queue, runnable: () -> T): CompletableFuture<T> =
-        runOnQueue(queue, 5, runnable)
-
-    /**
-     * Run a task on a specific queue
-     * @return a future that will be completed when the task is done
-     */
-    fun <T> runOnQueue(queue: Queue, priority: Int, runnable: () -> T): CompletableFuture<T> =
         CompletableFuture.supplyAsync(runnable, getExecutor(queue))
 
     /**
@@ -108,8 +101,7 @@ class QueueManager(val socketManager: QueueSocketManager) {
      * @return the executor for the given queue
      */
     private fun getExecutor(queue: Queue): ExecutorService =
-        queueExecutor.getOrDefault(queue, ThreadPoolExecutor(1, 1, 0,
-            TimeUnit.MILLISECONDS, PriorityBlockingQueue()))
+        queueExecutor.getOrDefault(queue, ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, LinkedBlockingQueue()))
 
     /**
      * @return the settings of all queues which includes custom properties
