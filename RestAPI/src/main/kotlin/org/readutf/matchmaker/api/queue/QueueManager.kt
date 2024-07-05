@@ -49,12 +49,11 @@ class QueueManager(val socketManager: QueueSocketManager) {
         }
     }
 
-    fun invalideSession(sessionId: String) {
+    fun invalidateSession(sessionId: String) {
         for (queue in queues.values) {
             runOnQueue(queue, 1) { queue.invalidateSession(sessionId) }
         }
     }
-
 
     private fun <T : Queue> registerQueueHandler(name: String, queueHandler: QueueHandler<T>) {
         require(!queueCreators.containsKey(name)) { "Queue creator already exists" }
@@ -95,7 +94,6 @@ class QueueManager(val socketManager: QueueSocketManager) {
      */
     fun <T> runOnQueue(queue: Queue, priority: Int, runnable: () -> T): CompletableFuture<T> =
         CompletableFuture.supplyAsync(runnable, getExecutor(queue))
-
 
     /**
      * Get a queue by its name

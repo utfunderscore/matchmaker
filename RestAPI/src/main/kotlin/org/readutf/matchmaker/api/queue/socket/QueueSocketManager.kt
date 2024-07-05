@@ -4,7 +4,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.websocket.WsConnectContext
 import io.javalin.websocket.WsContext
 import org.readutf.matchmaker.api.MatchmakerApi
-import org.readutf.matchmaker.api.queue.QueueManager
 import org.readutf.matchmaker.shared.TypedJson
 
 class QueueSocketManager(val matchmakerApi: MatchmakerApi) {
@@ -17,7 +16,7 @@ class QueueSocketManager(val matchmakerApi: MatchmakerApi) {
         activeSockets[sessionId] = wsConnectContext
 
         wsConnectContext.send(wsConnectContext.sessionId())
-        matchmakerApi.queueManager.invalideSession(sessionId)
+        matchmakerApi.queueManager.invalidateSession(sessionId)
     }
 
     fun onSocketLeave(wsContext: WsContext) {
