@@ -5,7 +5,6 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.http.Context
 import org.readutf.matchmaker.api.queue.Queue
 import org.readutf.matchmaker.api.queue.QueueHandler
-import org.readutf.matchmaker.api.queue.exception.QueueJoinException
 import org.readutf.matchmaker.api.queue.exception.TeamBuildException
 import org.readutf.matchmaker.api.queue.matchmaker.UnratedMatchmaker
 import org.readutf.matchmaker.api.queue.store.QueueStore
@@ -16,13 +15,14 @@ import org.readutf.matchmaker.shared.result.impl.EmptyQueueResult
 import org.readutf.matchmaker.shared.result.impl.MatchMakerError
 import org.readutf.matchmaker.shared.result.impl.QueueSuccess
 import org.readutf.matchmaker.shared.settings.UnratedQueueSettings
+import panda.std.Result
 import java.util.*
 import kotlin.math.log
 
 
 class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueueSettings) : Queue {
 
-    private val logger = KotlinLogging.logger {  }
+    private val logger = KotlinLogging.logger { }
 
     private val queue = mutableListOf<QueueEntry>()
     private val playerTracker = mutableMapOf<UUID, QueueEntry>()
@@ -32,18 +32,17 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
         return playerTracker.containsKey(uuid)
     }
 
-    override fun addToQueue(queueEntry: QueueEntry) {
-        throw QueueJoinException("Unrated queue does not support adding to queue")
-//        logger.info { "Adding to queue $queueEntry" }
-//
-//        queueEntry.playerIds.any { playerTracker.containsKey(it) }.let { inQueue ->
-//            if (inQueue) {
-//                logger.info { "Player already in queue"}
-//                return
-//            }
-//            queue.add(queueEntry)
-//            queueEntry.playerIds.forEach { playerTracker[it] = queueEntry }
-//        }
+    override fun addToQueue(queueEntry: QueueEntry): Result<Boolean, String> {
+
+        if (queueEntry.playerIds.any { playerTracker.containsKey(it) }) {
+            logger.info { "Player already in queue" }
+            return Result.error("Player already in queue")
+        }
+
+        queue.add(queueEntry)
+        queueEntry.playerIds.forEach { playerTracker[it] = queueEntry }
+        logger.info { "Added player to queue" }
+        return Result.ok(true)
     }
 
     override fun tick(): QueueResult {
@@ -74,15 +73,18 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
         return QueueSuccess(queueSettings.queueName, teams)
     }
 
-    override fun removeFromQueue(queueEntry: QueueEntry) {
-        queueEntry.playerIds.any { playerTracker.containsKey(it) }.let { inQueue ->
-            if (!inQueue) return
-            queue.remove(queueEntry)
-            queueEntry.playerIds.forEach { playerTracker.remove(it) }
+    override fun removeFromQueue(queueEntry: QueueEntry): Result<Unit, String> {
+
+        if (queueEntry.playerIds.any { !playerTracker.containsKey(it) }) {
+            return Result.error("Player not in queue")
         }
+        queue.remove(queueEntry)
+        queueEntry.playerIds.forEach { playerTracker.remove(it) }
+        return Result.ok(Unit)
     }
 
     override fun invalidateSession(sessionId: String) {
+        logger.info { "Invalidating session $sessionId" }
         queue.filter { it.sessionId == sessionId }.forEach { removeFromQueue(it) }
     }
 

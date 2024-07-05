@@ -8,6 +8,7 @@ import org.readutf.matchmaker.shared.entry.QueueEntry
 import org.readutf.matchmaker.shared.result.QueueResult
 import org.readutf.matchmaker.shared.result.impl.EmptyQueueResult
 import org.readutf.matchmaker.shared.settings.QueueSettings
+import panda.std.Result
 import java.util.concurrent.*
 
 class QueueManager(val socketManager: QueueSocketManager) {
@@ -24,7 +25,7 @@ class QueueManager(val socketManager: QueueSocketManager) {
 
     }
 
-    fun joinQueue(queue: Queue, queueEntry: QueueEntry): CompletableFuture<Unit> {
+    fun joinQueue(queue: Queue, queueEntry: QueueEntry): CompletableFuture<Result<Boolean, String>> {
         return runOnQueue(queue) { queue.addToQueue(queueEntry) }
     }
 

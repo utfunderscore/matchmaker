@@ -8,6 +8,14 @@ import revxrsal.commands.command.CommandActor
 @Command("queue")
 class QueueCommand(val queueManager: QueueManager) {
 
+    @Subcommand("list")
+    fun list(actor: CommandActor) {
+        actor.reply("Queues:")
+        for (queue in queueManager.getQueues()) {
+            actor.reply("  - ${queue.queueName}")
+        }
+    }
+
     @Subcommand("info")
     fun join(actor: CommandActor, queueName: String) {
 

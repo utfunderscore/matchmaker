@@ -16,11 +16,12 @@ class QueueSocketManager(val matchmakerApi: MatchmakerApi) {
         activeSockets[sessionId] = wsConnectContext
 
         wsConnectContext.send(wsConnectContext.sessionId())
-        matchmakerApi.queueManager.invalidateSession(sessionId)
     }
 
     fun onSocketLeave(wsContext: WsContext) {
-        activeSockets.remove(wsContext.sessionId())
+        val sessionId = wsContext.sessionId()
+        activeSockets.remove(sessionId)
+        matchmakerApi.queueManager.invalidateSession(sessionId)
     }
 
     fun notify(sessionId: String, typedJson: TypedJson) {

@@ -70,13 +70,17 @@ class QueueEndpoints(private var queueManager: QueueManager) {
             return
         }
 
-        val addToQueueResult =
-            queueManager.joinQueue(queue, queueEntry).thenRun {
-                queueManager.tickQueue(queue)
-            }
+        val addToQueueResult = queueManager.joinQueue(queue, queueEntry)
+        queueManager.tickQueue(queue)
 
         ctx.future {
-            addToQueueResult.thenAccept { ctx.json(ApiResponse.success(true)) }
+            addToQueueResult.thenAccept { result ->
+                result.peek { _ ->
+                    ctx.json(ApiResponse.success(true))
+                }.onError { error ->
+                    ctx.json(ApiResponse.failure<Boolean>(error))
+                }
+            }
         }
     }
 

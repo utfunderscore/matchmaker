@@ -25,7 +25,7 @@ class Queue(private val sessionId: String, queueSettings: QueueSettings, private
         async {
             val joinResult = queueService.join(queueName, QueueEntry(sessionId = sessionId, playerIds = players))
 
-            if(!joinResult.success) throw Exception("Failed to join queue")
+            if(!joinResult.success) throw Exception("Failed to join queue: " + joinResult.failureReason)
 
             return@async
         }

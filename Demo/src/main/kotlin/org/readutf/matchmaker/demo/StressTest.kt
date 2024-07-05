@@ -6,6 +6,9 @@ import org.readutf.matchmaker.shared.entry.QueueEntry
 import org.readutf.matchmaker.wrapper.Queue
 import org.readutf.matchmaker.wrapper.QueueListener
 import org.readutf.matchmaker.wrapper.QueueManager
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDateTime
 import java.util.*
 import kotlin.random.Random
 
@@ -37,7 +40,9 @@ class StressTest(host: String, port: Int) {
         queue = queueManager.getQueue("test")!!
 
 
-        joinQueue(listOf(UUID.randomUUID()))
+        for (i in 0 until 10) {
+            joinQueue(listOf(UUID.randomUUID()))
+        }
     }
 
     fun joinQueue(players: List<UUID>) {
@@ -73,13 +78,25 @@ class StressTestListener(val stressTest: StressTest) : QueueListener {
     private val logger = KotlinLogging.logger {  }
 
     override fun onQueueSuccess(queue: Queue, teams: List<List<QueueEntry>>) {
-        logger.info { "Received queue result" }
+        logger.info { "Received queue result: avg:${average(teams)} min: ${min(teams)} max: ${max(teams)}" }
         stressTest.inQueue.removeAll(teams.flatten().map { it.playerIds }.flatten().toSet())
-//        stressTest.simulateMatch(teams.flatten())
+        stressTest.simulateMatch(teams.flatten())
     }
 
     override fun onMatchMakerError(queue: Queue, failureReason: String) {
         logger.info { "Matchmaker error: $failureReason" }
+    }
+
+    fun average(teams: List<List<QueueEntry>>): Double {
+        return teams.flatten().map { Duration.between(LocalDateTime.now(), it.joinedAt).abs().toMillis() }.average()
+    }
+
+    fun min(teams: List<List<QueueEntry>>): Long {
+        return teams.flatten().minOfOrNull { Duration.between(LocalDateTime.now(), it.joinedAt).abs().toMillis() } ?: 0
+    }
+
+    fun max(teams: List<List<QueueEntry>>): Long {
+        return teams.flatten().maxOfOrNull { Duration.between(LocalDateTime.now(), it.joinedAt).abs().toMillis() } ?: 0
     }
 
 
