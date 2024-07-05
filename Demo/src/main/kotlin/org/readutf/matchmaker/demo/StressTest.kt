@@ -37,14 +37,13 @@ class StressTest(host: String, port: Int) {
         queue = queueManager.getQueue("test")!!
 
 
-        val teams = createTeams(1, 20)
-        joinQueue(teams)
+        joinQueue(listOf(UUID.randomUUID()))
     }
 
-    fun joinQueue(players: List<List<UUID>>) {
-        inQueue.addAll(players.flatten())
+    fun joinQueue(players: List<UUID>) {
+        inQueue.addAll(players)
         queue.join(players).invokeOnCompletion {
-            logger.info { "${players.flatten()} have joined the queue" }
+            logger.info { "$players have joined the queue" }
         }
     }
 
@@ -60,7 +59,9 @@ class StressTest(host: String, port: Int) {
         timer.schedule(object : TimerTask() {
             override fun run() {
                 logger.info { "Match complete, re entering queue" }
-                joinQueue(teams.map { it.playerIds})
+                for (team in teams) {
+                    joinQueue(team.playerIds)
+                }
             }
         }, Random.nextLong(1000, 3000))
     }
@@ -74,7 +75,7 @@ class StressTestListener(val stressTest: StressTest) : QueueListener {
     override fun onQueueSuccess(queue: Queue, teams: List<List<QueueEntry>>) {
         logger.info { "Received queue result" }
         stressTest.inQueue.removeAll(teams.flatten().map { it.playerIds }.flatten().toSet())
-        stressTest.simulateMatch(teams.flatten())
+//        stressTest.simulateMatch(teams.flatten())
     }
 
     override fun onMatchMakerError(queue: Queue, failureReason: String) {

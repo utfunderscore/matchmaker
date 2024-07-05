@@ -12,7 +12,6 @@ import org.readutf.matchmaker.api.queue.QueueManager
 import org.readutf.matchmaker.shared.entry.QueueEntry
 import org.readutf.matchmaker.shared.response.ApiResponse
 import org.readutf.matchmaker.shared.settings.QueueSettings
-import java.util.concurrent.CompletableFuture
 
 @Endpoints("/api/queue")
 class QueueEndpoints(private var queueManager: QueueManager) {
@@ -62,19 +61,17 @@ class QueueEndpoints(private var queueManager: QueueManager) {
         }
 
 
-        val queueEntries = JSON.parseObject(
+        val queueEntry = JSON.parseObject(
             playerTeamsString,
-            object : TypeReference<List<QueueEntry>>() {})
+            object : TypeReference<QueueEntry>() {})
 
-        if (queueEntries == null) {
+        if (queueEntry == null) {
             ctx.json(ApiResponse.failure<Boolean>("Invalid player teams"))
             return
         }
 
         val addToQueueResult =
-            CompletableFuture.allOf(
-                *queueEntries.map { queueManager.joinQueue(queue, it) }.toTypedArray()
-            ).thenRun {
+            queueManager.joinQueue(queue, queueEntry).thenRun {
                 queueManager.tickQueue(queue)
             }
 

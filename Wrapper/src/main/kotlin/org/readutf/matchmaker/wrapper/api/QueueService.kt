@@ -3,14 +3,11 @@ package org.readutf.matchmaker.wrapper.api
 import org.readutf.matchmaker.shared.entry.QueueEntry
 import org.readutf.matchmaker.shared.response.ApiResponse
 import org.readutf.matchmaker.shared.settings.QueueSettings
-import retrofit2.Call
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
-import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
-import java.util.UUID
 
 interface QueueService {
 
@@ -21,7 +18,7 @@ interface QueueService {
     suspend fun create(@Path("id") queueType: String, @Path("name") queueName: String): ApiResponse<QueueSettings>
 
     @POST("/api/queue/join")
-    suspend fun join(@Query("name") queueName: String, @Body players: @JvmSuppressWildcards List<QueueEntry>): ApiResponse<Boolean>
+    suspend fun join(@Query("name") queueName: String, @Body team: QueueEntry): ApiResponse<Boolean>
 
     @GET("/api/queue")
     suspend fun getQueue(@Query("queueName") queueName: String): ApiResponse<QueueSettings>

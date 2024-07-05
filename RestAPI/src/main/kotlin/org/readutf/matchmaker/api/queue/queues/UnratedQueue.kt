@@ -5,6 +5,7 @@ import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.http.Context
 import org.readutf.matchmaker.api.queue.Queue
 import org.readutf.matchmaker.api.queue.QueueHandler
+import org.readutf.matchmaker.api.queue.exception.QueueJoinException
 import org.readutf.matchmaker.api.queue.exception.TeamBuildException
 import org.readutf.matchmaker.api.queue.matchmaker.UnratedMatchmaker
 import org.readutf.matchmaker.api.queue.store.QueueStore
@@ -32,16 +33,17 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
     }
 
     override fun addToQueue(queueEntry: QueueEntry) {
-        logger.info { "Adding to queue $queueEntry" }
-
-        queueEntry.playerIds.any { playerTracker.containsKey(it) }.let { inQueue ->
-            if (inQueue) {
-                logger.info { "Player already in queue"}
-                return
-            }
-            queue.add(queueEntry)
-            queueEntry.playerIds.forEach { playerTracker[it] = queueEntry }
-        }
+        throw QueueJoinException("Unrated queue does not support adding to queue")
+//        logger.info { "Adding to queue $queueEntry" }
+//
+//        queueEntry.playerIds.any { playerTracker.containsKey(it) }.let { inQueue ->
+//            if (inQueue) {
+//                logger.info { "Player already in queue"}
+//                return
+//            }
+//            queue.add(queueEntry)
+//            queueEntry.playerIds.forEach { playerTracker[it] = queueEntry }
+//        }
     }
 
     override fun tick(): QueueResult {
