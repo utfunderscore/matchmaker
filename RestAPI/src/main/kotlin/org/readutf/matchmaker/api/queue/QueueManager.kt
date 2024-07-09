@@ -11,8 +11,9 @@ import org.readutf.matchmaker.shared.settings.QueueSettings
 import panda.std.Result
 import java.util.concurrent.*
 
-class QueueManager(val socketManager: QueueSocketManager) {
-
+class QueueManager(
+    val socketManager: QueueSocketManager,
+) {
     private val logger = KotlinLogging.logger {}
     private val queues = mutableMapOf<String, Queue>()
     private val queueExecutor = mutableMapOf<Queue, ExecutorService>()
@@ -22,33 +23,40 @@ class QueueManager(val socketManager: QueueSocketManager) {
         logger.info { "Initializing QueueManager" }
 
         registerQueueHandler("unrated", UnratedQueue.UnratedQueueHandler())
-
     }
 
-    fun joinQueue(queue: Queue, queueEntry: QueueEntry): CompletableFuture<Result<Boolean, String>> {
-        return runOnQueue(queue) { queue.addToQueue(queueEntry) }
-    }
+    fun joinQueue(
+        queue: Queue,
+        queueEntry: QueueEntry,
+    ): CompletableFuture<Result<Boolean, String>> =
+        runOnQueue(queue) {
+            queue.addToQueue(queueEntry)
+        }
 
-    fun leaveQueue(queue: Queue, queueEntry: QueueEntry) = getExecutor(queue).submit {
+    fun leaveQueue(
+        queue: Queue,
+        queueEntry: QueueEntry,
+    ) = getExecutor(queue).submit {
         queue.removeFromQueue(queueEntry)
     }
 
-    fun tickQueue(queue: Queue) = runOnQueue(queue) {
+    fun tickQueue(queue: Queue) =
+        runOnQueue(queue) {
+            var previousResult: QueueResult? = null
 
-        var previousResult: QueueResult? = null
+            val results = mutableListOf<QueueResult>()
+            while (previousResult == null || previousResult !is EmptyQueueResult) {
+                previousResult = queue.tick()
+                results.add(previousResult)
+            }
 
-        val results = mutableListOf<QueueResult>()
-        while (previousResult == null || previousResult !is EmptyQueueResult) {
-            previousResult = queue.tick()
-            results.add(previousResult)
+            results.forEach { result ->
+                result
+                    .getAffectedSessions()
+                    .distinct()
+                    .forEach { session -> socketManager.notify(session, TypedJson(result)) }
+            }
         }
-
-        results.forEach { result ->
-            result.getAffectedSessions()
-                .distinct()
-                .forEach { session -> socketManager.notify(session, TypedJson(result)) }
-        }
-    }
 
     fun invalidateSession(sessionId: String) {
         for (queue in queues.values) {
@@ -56,7 +64,10 @@ class QueueManager(val socketManager: QueueSocketManager) {
         }
     }
 
-    private fun <T : Queue> registerQueueHandler(name: String, queueHandler: QueueHandler<T>) {
+    private fun <T : Queue> registerQueueHandler(
+        name: String,
+        queueHandler: QueueHandler<T>,
+    ) {
         require(!queueCreators.containsKey(name)) { "Queue creator already exists" }
 
         queueCreators[name] = queueHandler
@@ -64,10 +75,12 @@ class QueueManager(val socketManager: QueueSocketManager) {
         queueHandler.getQueueStore().loadQueues().forEach { queue: Queue ->
             registerQueue(queue.getSettings().queueName, queue)
         }
-
     }
 
-    fun registerQueue(name: String, queue: Queue): Queue {
+    fun registerQueue(
+        name: String,
+        queue: Queue,
+    ): Queue {
         require(!queues.containsKey(name)) { "Queue already exists" }
 
         synchronized(queues) {
@@ -86,8 +99,10 @@ class QueueManager(val socketManager: QueueSocketManager) {
      * Run a task on a specific queue
      * @return a future that will be completed when the task is done
      */
-    fun <T> runOnQueue(queue: Queue, runnable: () -> T): CompletableFuture<T> =
-        CompletableFuture.supplyAsync(runnable, getExecutor(queue))
+    fun <T> runOnQueue(
+        queue: Queue,
+        runnable: () -> T,
+    ): CompletableFuture<T> = CompletableFuture.supplyAsync(runnable, getExecutor(queue))
 
     /**
      * Get a queue by its name
@@ -107,27 +122,20 @@ class QueueManager(val socketManager: QueueSocketManager) {
     /**
      * @return the settings of all queues which includes custom properties
      */
-    fun getQueues(): Collection<QueueSettings> {
-        return queues.values.map { it.getSettings() }
-    }
+    fun getQueues(): Collection<QueueSettings> = queues.values.map { it.getSettings() }
 
     /**
      * @return the names of all queue creators
      */
-    fun getQueueCreators(): List<String> {
-        return queueCreators.keys.toList()
-    }
+    fun getQueueCreators(): List<String> = queueCreators.keys.toList()
 
     /**
      * Stop the queue manager and its subcomponents
      * This will empty all active queues, and save all queues to disk
      */
     fun stop() {
-
         queueCreators.values.forEach { queueHandler ->
             queueHandler.getQueueStore().saveQueues(queues.values.toList())
         }
-
     }
-
 }

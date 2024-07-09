@@ -1,9 +1,7 @@
 package org.readutf.matchmaker.shared.result
 
 abstract class QueueResult(
-    val queueName: String
+    val queueName: String,
 ) {
-
-   abstract fun getAffectedSessions(): Collection<String>
-
+    abstract fun getAffectedSessions(): Collection<String>
 }

@@ -6,8 +6,9 @@ import io.javalin.websocket.WsContext
 import org.readutf.matchmaker.api.MatchmakerApi
 import org.readutf.matchmaker.shared.TypedJson
 
-class QueueSocketManager(val matchmakerApi: MatchmakerApi) {
-
+class QueueSocketManager(
+    val matchmakerApi: MatchmakerApi,
+) {
     private val logger = KotlinLogging.logger {}
     private val activeSockets = mutableMapOf<String, WsContext>()
 
@@ -24,15 +25,13 @@ class QueueSocketManager(val matchmakerApi: MatchmakerApi) {
         matchmakerApi.queueManager.invalidateSession(sessionId)
     }
 
-    fun notify(sessionId: String, typedJson: TypedJson) {
-
+    fun notify(
+        sessionId: String,
+        typedJson: TypedJson,
+    ) {
         logger.info { "Notifying session $sessionId with $typedJson" }
         activeSockets[sessionId]?.run {
             send(typedJson)
         }
-
     }
-
-
-
 }

@@ -8,7 +8,7 @@ group = "com.readutf.matchmaker"
 version = "1.0-SNAPSHOT"
 
 dependencies {
-    //add fastjson2
+    // add fastjson2
     implementation("com.alibaba:fastjson:2.0.51")
 
     api("org.panda-lang:expressible:1.3.6") // Core library

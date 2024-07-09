@@ -5,8 +5,6 @@ plugins {
 group = "com.readutf.matchmaker"
 version = "1.0-SNAPSHOT"
 
-
-
 subprojects {
 
     repositories {
@@ -14,7 +12,6 @@ subprojects {
             url = uri("https://reposilite.readutf.org/releases")
         }
     }
-
 }
 
 repositories {

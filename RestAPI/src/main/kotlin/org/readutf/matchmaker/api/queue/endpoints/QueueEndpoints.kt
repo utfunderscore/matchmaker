@@ -14,22 +14,22 @@ import org.readutf.matchmaker.shared.response.ApiResponse
 import org.readutf.matchmaker.shared.settings.QueueSettings
 
 @Endpoints("/api/queue")
-class QueueEndpoints(private var queueManager: QueueManager) {
-
+class QueueEndpoints(
+    private var queueManager: QueueManager,
+) {
     val logger = KotlinLogging.logger { }
 
     @Get
     fun getQueue(ctx: Context): ApiResponse<QueueSettings> {
-
         val queueName = ctx.queryParam("queueName") ?: return ApiResponse.failure("Missing 'queueName' parameter")
 
         val queue = queueManager.getQueue(queueName)
 
-        return if (queue == null)
+        return if (queue == null) {
             ApiResponse.failure("Queue not found")
-        else
+        } else {
             ApiResponse.success(queue.getSettings())
-
+        }
     }
 
     @Get("/list")
@@ -53,10 +53,11 @@ class QueueEndpoints(private var queueManager: QueueManager) {
 
     @Post("/join")
     fun join(ctx: Context) {
-        val queueName = ctx.queryParam("name") ?: run {
-            ctx.json(ApiResponse.failure<Boolean>("Missing query parameter 'name'"))
-            return
-        }
+        val queueName =
+            ctx.queryParam("name") ?: run {
+                ctx.json(ApiResponse.failure<Boolean>("Missing query parameter 'name'"))
+                return
+            }
         val playerTeamsString = ctx.body()
 
         val queue = queueManager.getQueue(queueName)
@@ -66,10 +67,11 @@ class QueueEndpoints(private var queueManager: QueueManager) {
             return
         }
 
-
-        val queueEntry = JSON.parseObject(
-            playerTeamsString,
-            object : TypeReference<QueueEntry>() {})
+        val queueEntry =
+            JSON.parseObject(
+                playerTeamsString,
+                object : TypeReference<QueueEntry>() {},
+            )
 
         if (queueEntry == null) {
             ctx.json(ApiResponse.failure<Boolean>("Invalid player teams"))
@@ -81,18 +83,16 @@ class QueueEndpoints(private var queueManager: QueueManager) {
 
         ctx.future {
             addToQueueResult.thenAccept { result ->
-                result.peek { _ ->
-                    ctx.json(ApiResponse.success(true))
-                }.onError { error ->
-                    ctx.json(ApiResponse.failure<Boolean>(error))
-                }
+                result
+                    .peek { _ ->
+                        ctx.json(ApiResponse.success(true))
+                    }.onError { error ->
+                        ctx.json(ApiResponse.failure<Boolean>(error))
+                    }
             }
         }
     }
 
     @Get("/types")
-    fun listCreators(): ApiResponse<List<String>> {
-        return ApiResponse.success(queueManager.getQueueCreators())
-    }
-
+    fun listCreators(): ApiResponse<List<String>> = ApiResponse.success(queueManager.getQueueCreators())
 }

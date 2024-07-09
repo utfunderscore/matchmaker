@@ -14,28 +14,32 @@ import org.readutf.matchmaker.wrapper.socket.SocketClient
 import org.readutf.matchmaker.wrapper.utils.FastJsonConvertorFactory
 import retrofit2.Retrofit
 
-class QueueManager private constructor(hostname: String, port: Int, private val queueListener: QueueListener) {
-
+class QueueManager private constructor(
+    hostname: String,
+    port: Int,
+    private val queueListener: QueueListener,
+) {
     private val logger = KotlinLogging.logger { }
 
     private val queues = mutableMapOf<String, Queue>()
 
-    private val retrofit = Retrofit.Builder()
-        .client(
-            OkHttpClient.Builder()
+    private val retrofit =
+        Retrofit
+            .Builder()
+            .client(
+                OkHttpClient
+                    .Builder()
 //                .addInterceptor(HttpLoggingInterceptor().setLevel(HttpLoggingInterceptor.Level.BODY))
-                .build()
-        )
-        .baseUrl("http://$hostname:$port/")
-        .addConverterFactory(FastJsonConvertorFactory())
-        .build()
+                    .build(),
+            ).baseUrl("http://$hostname:$port/")
+            .addConverterFactory(FastJsonConvertorFactory())
+            .build()
 
     private val socketClient = SocketClient(hostname, port, this)
     private val queueService = retrofit.create(QueueService::class.java)
     lateinit var socketId: String
 
     private suspend fun init() {
-
         socketId = socketClient.sessionIdFuture.join()
 
         runBlocking {
@@ -45,27 +49,29 @@ class QueueManager private constructor(hostname: String, port: Int, private val 
                 queues[it.queueName] = Queue(socketId, it, queueService)
             }
         }
-
     }
 
-    fun createQueue(queueType: String, queueName: String): Deferred<Queue> = runBlocking {
-        return@runBlocking async {
-            val apiResponse = queueService.create(queueType, queueName)
+    fun createQueue(
+        queueType: String,
+        queueName: String,
+    ): Deferred<Queue> =
+        runBlocking {
+            return@runBlocking async {
+                val apiResponse = queueService.create(queueType, queueName)
 
-            if (!apiResponse.success || apiResponse.response == null)
-                throw Exception(apiResponse.failureReason ?: "Failed to create queue")
+                if (!apiResponse.success || apiResponse.response == null) {
+                    throw Exception(apiResponse.failureReason ?: "Failed to create queue")
+                }
 
-            val queueSettings = apiResponse.response!!
+                val queueSettings = apiResponse.response!!
 
-            val queue = Queue(socketId, queueSettings, queueService)
-            queues[queueSettings.queueName] = queue
-            return@async queue;
+                val queue = Queue(socketId, queueSettings, queueService)
+                queues[queueSettings.queueName] = queue
+                return@async queue
+            }
         }
 
-    }
-
     fun handleQueueResultAsync(queueResult: QueueResult) = runBlocking { launch { handleQueueResult(queueResult) } }
-
 
     private suspend fun handleQueueResult(queueResult: QueueResult) {
         val queue = getQueueOrFetch(queueResult.queueName)
@@ -76,7 +82,6 @@ class QueueManager private constructor(hostname: String, port: Int, private val 
         }
 
         when (queueResult) {
-
             is QueueSuccess -> {
                 queueListener.onQueueSuccess(queue, queueResult.queueEntries)
             }
@@ -87,9 +92,7 @@ class QueueManager private constructor(hostname: String, port: Int, private val 
         }
     }
 
-    fun getQueue(queueName: String): Queue? {
-        return queues[queueName]
-    }
+    fun getQueue(queueName: String): Queue? = queues[queueName]
 
     private suspend fun getQueueOrFetch(queueName: String): Queue? {
         val queueResult = queueService.getQueue(queueName)
@@ -99,15 +102,13 @@ class QueueManager private constructor(hostname: String, port: Int, private val 
         }
 
         return null
-
     }
 
     companion object {
-
-        suspend fun create(hostName: String, port: Int, queueListener: QueueListener): QueueManager {
-            return QueueManager(hostName, port, queueListener).also { it.init() }
-        }
-
+        suspend fun create(
+            hostName: String,
+            port: Int,
+            queueListener: QueueListener,
+        ): QueueManager = QueueManager(hostName, port, queueListener).also { it.init() }
     }
-
 }

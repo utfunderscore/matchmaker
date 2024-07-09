@@ -13,9 +13,10 @@ import panda.std.Result
  * @see org.readutf.matchmaker.api.queue.queues.UnratedQueue.UnratedQueueHandler for an example
  */
 interface QueueHandler<T : Queue> {
-
-    fun createQueue(queueName: String, context: Context): Result<T, String>
+    fun createQueue(
+        queueName: String,
+        context: Context,
+    ): Result<T, String>
 
     fun getQueueStore(): QueueStore<T>
-
 }

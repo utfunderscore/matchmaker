@@ -12,7 +12,6 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 
 class UnratedQueueStore : QueueStore<UnratedQueue> {
-
     private val logger = KotlinLogging.logger { }
 
     private var currentVersion: String = "1.0.0"
@@ -20,7 +19,6 @@ class UnratedQueueStore : QueueStore<UnratedQueue> {
     private val file = File(File(System.getProperty("user.dir")), "unrated-queues.json")
 
     override fun loadQueues(): List<UnratedQueue> {
-
         logger.info { "Loading Unrated queues..." }
 
         val start = System.currentTimeMillis()
@@ -31,11 +29,11 @@ class UnratedQueueStore : QueueStore<UnratedQueue> {
             return emptyList()
         }
 
-
-        val versionedData = JSON.parseObject<VersionedData<List<UnratedQueueSettings>>>(
-            FileInputStream(file),
-            object : TypeReference<VersionedData<List<UnratedQueueSettings>>>() {}.type
-        )
+        val versionedData =
+            JSON.parseObject<VersionedData<List<UnratedQueueSettings>>>(
+                FileInputStream(file),
+                object : TypeReference<VersionedData<List<UnratedQueueSettings>>>() {}.type,
+            )
         if (versionedData.version != currentVersion) {
             logger.warn { "Version mismatch, expected $currentVersion but got ${versionedData.version}" }
         }
@@ -51,11 +49,14 @@ class UnratedQueueStore : QueueStore<UnratedQueue> {
     override fun saveQueues(queues: List<Queue>) {
         writeToFile(
             file,
-            VersionedData(currentVersion, queues.filterIsInstance<UnratedQueue>().map { queue -> queue.queueSettings })
+            VersionedData(currentVersion, queues.filterIsInstance<UnratedQueue>().map { queue -> queue.queueSettings }),
         )
     }
 
-    private fun <T> writeToFile(file: File, any: T): T {
+    private fun <T> writeToFile(
+        file: File,
+        any: T,
+    ): T {
         FileOutputStream(file).use {
             JSON.writeTo(it, any)
         }
@@ -66,5 +67,4 @@ class UnratedQueueStore : QueueStore<UnratedQueue> {
         val version: String,
         val data: T,
     )
-
 }

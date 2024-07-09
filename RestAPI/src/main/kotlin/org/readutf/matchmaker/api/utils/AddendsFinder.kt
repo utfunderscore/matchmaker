@@ -1,13 +1,9 @@
 package org.readutf.matchmaker.api.utils
 
-
 fun findAllAddends(targetSize: Int): List<ComparableList> {
-
-
     val availableOptions = mutableListOf<Int>()
 
     for (i in 1 until targetSize + 1) {
-
         val amountOfNumber = targetSize / i
 
         availableOptions.addAll(List(amountOfNumber) { i })
@@ -16,8 +12,10 @@ fun findAllAddends(targetSize: Int): List<ComparableList> {
     return findCombinations(availableOptions, targetSize).distinct()
 }
 
-
-private fun findCombinations(teams: List<Int>, target: Int): List<ComparableList> {
+private fun findCombinations(
+    teams: List<Int>,
+    target: Int,
+): List<ComparableList> {
     val result: MutableList<List<Int>> = ArrayList()
     teams.sortedBy { it }
     backtrack(teams, target, 0, ArrayList(), result)
@@ -41,14 +39,14 @@ private fun backtrack(
     for (i in start until teams.size) {
         currentCombination.add(teams[i])
 
-
         backtrack(teams, target - teams[i], i + 1, currentCombination, result)
         currentCombination.removeAt(currentCombination.size - 1)
     }
 }
 
-class ComparableList(var groupSizes: List<Int>) {
-
+class ComparableList(
+    var groupSizes: List<Int>,
+) {
     val numberOfSizes = mutableMapOf<Int, Int>()
 
     init {
@@ -69,13 +67,7 @@ class ComparableList(var groupSizes: List<Int>) {
         return true
     }
 
-    override fun hashCode(): Int {
-        return groupSizes.hashCode()
-    }
+    override fun hashCode(): Int = groupSizes.hashCode()
 
-    override fun toString(): String {
-        return "Team(groupSizes=$groupSizes)"
-    }
-
-
+    override fun toString(): String = "Team(groupSizes=$groupSizes)"
 }

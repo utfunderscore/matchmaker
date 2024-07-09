@@ -9,9 +9,12 @@ import org.readutf.matchmaker.shared.result.QueueResult
 import org.readutf.matchmaker.wrapper.QueueManager
 import java.util.concurrent.CompletableFuture
 
-class SocketClient(hostName: String, port: Int, val queueManager: QueueManager) : WebSocketAdapter() {
-
-    private val logger = KotlinLogging.logger {  }
+class SocketClient(
+    hostName: String,
+    port: Int,
+    val queueManager: QueueManager,
+) : WebSocketAdapter() {
+    private val logger = KotlinLogging.logger { }
     val sessionIdFuture: CompletableFuture<String>
 
     init {
@@ -24,17 +27,18 @@ class SocketClient(hostName: String, port: Int, val queueManager: QueueManager) 
         sessionIdFuture = CompletableFuture()
 
         webSocket.connect()
-
     }
 
-    override fun onTextMessage(websocket: WebSocket?, text: String?) {
-
-        if(!sessionIdFuture.isDone) {
+    override fun onTextMessage(
+        websocket: WebSocket?,
+        text: String?,
+    ) {
+        if (!sessionIdFuture.isDone) {
             sessionIdFuture.complete(text)
             return
         }
 
-        if(text == null) {
+        if (text == null) {
             logger.warn { "Received invalid websocket text" }
             return
         }
@@ -49,7 +53,6 @@ class SocketClient(hostName: String, port: Int, val queueManager: QueueManager) 
         }
 
         when (typedData.data) {
-
             is QueueResult -> {
                 queueManager.handleQueueResultAsync(typedData.data as QueueResult)
             }
@@ -59,5 +62,4 @@ class SocketClient(hostName: String, port: Int, val queueManager: QueueManager) 
             }
         }
     }
-
 }

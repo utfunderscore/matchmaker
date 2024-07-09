@@ -8,15 +8,17 @@ import org.readutf.matchmaker.api.queue.endpoints.QueueEndpoints
 import org.readutf.matchmaker.api.queue.socket.QueueSocketManager
 import revxrsal.commands.cli.ConsoleCommandHandler
 
-class MatchmakerApi(mainConfig: MainConfig) {
-
+class MatchmakerApi(
+    mainConfig: MainConfig,
+) {
     private val queueSocketManager = QueueSocketManager(this)
     val queueManager = QueueManager(queueSocketManager)
-    private val endpointManager = EndpointManager(
-        mainConfig.endpointConfig,
-        queueSocketManager,
-        QueueEndpoints(queueManager)
-    )
+    private val endpointManager =
+        EndpointManager(
+            mainConfig.endpointConfig,
+            queueSocketManager,
+            QueueEndpoints(queueManager),
+        )
     private val commandThread = Thread()
     private val commandManager: ConsoleCommandHandler = ConsoleCommandHandler.create()
 
@@ -38,5 +40,4 @@ class MatchmakerApi(mainConfig: MainConfig) {
 
         logger.info { "Matchmaker stopped." }
     }
-
 }

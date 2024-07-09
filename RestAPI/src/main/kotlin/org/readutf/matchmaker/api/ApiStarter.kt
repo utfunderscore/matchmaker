@@ -14,7 +14,6 @@ var logger = KotlinLogging.logger {}
  * Application entry point, loads the config and starts the API.
  */
 fun main() {
-
     val baseDir = File(System.getProperty("user.dir"))
 
     val externalConfig = copyDefaultConfig(baseDir)
@@ -31,12 +30,13 @@ fun main() {
  * @return The loaded config.
  */
 private fun loadMainConfig(externalConfig: File): MainConfig {
-    val configResult = ConfigLoaderBuilder
-        .default()
-        .addFileSource(externalConfig)
-        .addResourceSource("/config.yml")
-        .build()
-        .loadConfigOrThrow<MainConfig>()
+    val configResult =
+        ConfigLoaderBuilder
+            .default()
+            .addFileSource(externalConfig)
+            .addResourceSource("/config.yml")
+            .build()
+            .loadConfigOrThrow<MainConfig>()
     return configResult
 }
 
@@ -48,8 +48,9 @@ private fun copyDefaultConfig(baseDir: File): File {
     if (!externalConfig.exists()) {
         logger.info { "Config.yml not found, copying defaults." }
 
-        val defaultConfigResource = MatchmakerApi::class.java.getResourceAsStream("/config.yml")
-            ?: error("Default config not found")
+        val defaultConfigResource =
+            MatchmakerApi::class.java.getResourceAsStream("/config.yml")
+                ?: error("Default config not found")
 
         Files.copy(defaultConfigResource, externalConfig.toPath())
     }

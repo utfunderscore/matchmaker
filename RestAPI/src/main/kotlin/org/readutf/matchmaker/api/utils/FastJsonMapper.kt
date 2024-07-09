@@ -5,13 +5,13 @@ import io.javalin.json.JsonMapper
 import java.lang.reflect.Type
 
 object FastJsonMapper : JsonMapper {
+    override fun <T : Any> fromJsonString(
+        json: String,
+        targetType: Type,
+    ): T = JSON.parseObject(json, targetType)
 
-    override fun <T : Any> fromJsonString(json: String, targetType: Type): T {
-        return JSON.parseObject(json, targetType)
-    }
-
-    override fun toJsonString(obj: Any, type: Type): String {
-        return JSON.toJSONString(obj)
-    }
-
+    override fun toJsonString(
+        obj: Any,
+        type: Type,
+    ): String = JSON.toJSONString(obj)
 }

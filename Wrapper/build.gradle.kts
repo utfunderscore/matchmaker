@@ -41,11 +41,9 @@ dependencies {
     api("com.squareup.okhttp3:logging-interceptor:4.11.0")
     api("io.github.oshai:kotlin-logging-jvm:5.1.0")
 
-
-    //Logging
+    // Logging
     implementation("org.apache.logging.log4j:log4j-api:2.14.1")
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.23.1")
-
 }
 
 tasks.test {

@@ -5,8 +5,5 @@ data class UnratedQueueSettings(
     var teamSize: Int,
     var numberOfTeams: Int,
 ) : QueueSettings(queueName) {
-
-    override fun toString(): String {
-        return "UnratedQueueSettings(queueName='$queueName', teamSize=$teamSize, numberOfTeams=$numberOfTeams)"
-    }
+    override fun toString(): String = "UnratedQueueSettings(queueName='$queueName', teamSize=$teamSize, numberOfTeams=$numberOfTeams)"
 }

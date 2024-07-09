@@ -7,7 +7,6 @@ plugins {
 group = "com.readutf.matchmaker"
 version = "1.0.1"
 
-
 tasks {
     shadowJar {
         mergeServiceFiles()
@@ -53,14 +52,14 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2")
     implementation("io.github.oshai:kotlin-logging-jvm:5.1.0")
 
-    //Logging
+    // Logging
     implementation("org.apache.logging.log4j:log4j-api:2.14.1")
     implementation("org.apache.logging.log4j:log4j-slf4j2-impl:2.23.1")
 
-    //Json
+    // Json
     implementation("com.alibaba:fastjson:2.0.51")
 
-    //Commands
+    // Commands
     implementation("com.github.Revxrsal.Lamp:common:3.2.1")
 
     // Add your specific platform module here

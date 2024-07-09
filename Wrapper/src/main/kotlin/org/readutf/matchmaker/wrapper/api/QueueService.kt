@@ -10,20 +10,26 @@ import retrofit2.http.Path
 import retrofit2.http.Query
 
 interface QueueService {
-
     @GET("/api/queue/list")
     suspend fun list(): ApiResponse<List<QueueSettings>>
 
     @GET("/api/queue/{id}/create/")
-    suspend fun create(@Path("id") queueType: String, @Path("name") queueName: String): ApiResponse<QueueSettings>
+    suspend fun create(
+        @Path("id") queueType: String,
+        @Path("name") queueName: String,
+    ): ApiResponse<QueueSettings>
 
     @POST("/api/queue/join")
-    suspend fun join(@Query("name") queueName: String, @Body team: QueueEntry): ApiResponse<Boolean>
+    suspend fun join(
+        @Query("name") queueName: String,
+        @Body team: QueueEntry,
+    ): ApiResponse<Boolean>
 
     @GET("/api/queue")
-    suspend fun getQueue(@Query("queueName") queueName: String): ApiResponse<QueueSettings>
+    suspend fun getQueue(
+        @Query("queueName") queueName: String,
+    ): ApiResponse<QueueSettings>
 
     @GET("/api/types")
     suspend fun types(): ApiResponse<List<String>>
-
 }

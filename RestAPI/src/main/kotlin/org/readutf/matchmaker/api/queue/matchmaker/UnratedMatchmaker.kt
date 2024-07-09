@@ -7,14 +7,14 @@ import org.readutf.matchmaker.shared.entry.QueueEntry
 import java.util.*
 import kotlin.collections.ArrayDeque
 
-
-class UnratedMatchmaker(teamSize: Int, private val numberOfTeams: Int) : Matchmaker<QueueEntry> {
-
+class UnratedMatchmaker(
+    teamSize: Int,
+    private val numberOfTeams: Int,
+) : Matchmaker<QueueEntry> {
     private val addends = findAllAddends(teamSize)
 
     @Throws(TeamBuildException::class)
     override fun buildTeams(queue: List<QueueEntry>): List<List<QueueEntry>> {
-
         val sizeToEntry = mutableMapOf<Int, ArrayDeque<QueueEntry>>()
 
         queue.forEach {
@@ -26,7 +26,7 @@ class UnratedMatchmaker(teamSize: Int, private val numberOfTeams: Int) : Matchma
         val teams = mutableListOf<List<QueueEntry>>()
         for (i in 0 until numberOfTeams) {
             val team = buildTeam(sizeToEntry)
-            if(team.isEmpty()) return emptyList()
+            if (team.isEmpty()) return emptyList()
 
             teams.add(team)
 
@@ -38,15 +38,14 @@ class UnratedMatchmaker(teamSize: Int, private val numberOfTeams: Int) : Matchma
     }
 
     private fun buildTeam(sizeToEntry: MutableMap<Int, ArrayDeque<QueueEntry>>): MutableList<QueueEntry> {
-
         addends.map { it.numberOfSizes }.forEach { sizes ->
 
-            val allValid = sizes.entries.all {
-                sizeToEntry.getOrDefault(it.key, emptyList<Int>()).size >= it.value
-            }
+            val allValid =
+                sizes.entries.all {
+                    sizeToEntry.getOrDefault(it.key, emptyList<Int>()).size >= it.value
+                }
 
             if (allValid) {
-
                 val teams = mutableListOf<QueueEntry>()
 
                 sizes.forEach { (size, numOfSize) ->
@@ -59,6 +58,4 @@ class UnratedMatchmaker(teamSize: Int, private val numberOfTeams: Int) : Matchma
         }
         return mutableListOf()
     }
-
-
 }

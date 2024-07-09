@@ -6,8 +6,9 @@ import revxrsal.commands.annotation.Subcommand
 import revxrsal.commands.command.CommandActor
 
 @Command("queue")
-class QueueCommand(val queueManager: QueueManager) {
-
+class QueueCommand(
+    val queueManager: QueueManager,
+) {
     @Subcommand("list")
     fun list(actor: CommandActor) {
         actor.reply("Queues:")
@@ -17,21 +18,23 @@ class QueueCommand(val queueManager: QueueManager) {
     }
 
     @Subcommand("info")
-    fun join(actor: CommandActor, queueName: String) {
-
-        val queue = queueManager.getQueue(queueName) ?: run {
-            actor.error("Queue $queueName not found.")
-            return
-        }
+    fun join(
+        actor: CommandActor,
+        queueName: String,
+    ) {
+        val queue =
+            queueManager.getQueue(queueName) ?: run {
+                actor.error("Queue $queueName not found.")
+                return
+            }
 
         actor.reply("Queue $queueName:")
         actor.reply("  - Size: ${queue.getPlayersInQueue().size}")
         actor.reply("  - Settings: ${queue.getSettings()}")
-        if(queue.getPlayersInQueue().isNotEmpty()) {
+        if (queue.getPlayersInQueue().isNotEmpty()) {
             for (queueEntry in queue.getPlayersInQueue()) {
                 actor.reply("  - ${queueEntry.playerIds.joinToString(", ")}")
             }
         }
     }
-
 }

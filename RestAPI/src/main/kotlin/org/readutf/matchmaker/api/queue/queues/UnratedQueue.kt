@@ -18,21 +18,18 @@ import org.readutf.matchmaker.shared.settings.UnratedQueueSettings
 import panda.std.Result
 import java.util.*
 
-
-class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueueSettings) : Queue {
-
+class UnratedQueue(
+    @JSONField(serialize = false) val queueSettings: UnratedQueueSettings,
+) : Queue {
     private val logger = KotlinLogging.logger { }
 
     private val queue = mutableListOf<QueueEntry>()
     private val playerTracker = mutableMapOf<UUID, QueueEntry>()
     private val matchmaker = UnratedMatchmaker(queueSettings.teamSize, queueSettings.numberOfTeams)
 
-    override fun isInQueue(uuid: UUID): Boolean {
-        return playerTracker.containsKey(uuid)
-    }
+    override fun isInQueue(uuid: UUID): Boolean = playerTracker.containsKey(uuid)
 
     override fun addToQueue(queueEntry: QueueEntry): Result<Boolean, String> {
-
         if (queueEntry.playerIds.size > queueSettings.teamSize) return Result.error("Too many players in queue entry")
         if (queueEntry.playerIds.isEmpty()) return Result.error("No players in queue entry")
 
@@ -48,17 +45,17 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
     }
 
     override fun tick(): QueueResult {
-
         logger.info { "Ticking queue ${queueSettings.queueName}" }
 
         logger.info { "Before ${queue.size}" }
 
-        val teams = try {
-            matchmaker.buildTeams(queue)
-        } catch (e: TeamBuildException) {
-            logger.error(e) { "Error building teams" }
-            return MatchMakerError(queueSettings.queueName, queue, e.message ?: "Unknown Error")
-        }
+        val teams =
+            try {
+                matchmaker.buildTeams(queue)
+            } catch (e: TeamBuildException) {
+                logger.error(e) { "Error building teams" }
+                return MatchMakerError(queueSettings.queueName, queue, e.message ?: "Unknown Error")
+            }
 
         logger.info { "After ${queue.size}" }
 
@@ -76,7 +73,6 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
     }
 
     override fun removeFromQueue(queueEntry: QueueEntry): Result<Unit, String> {
-
         if (queueEntry.playerIds.any { !playerTracker.containsKey(it) }) {
             return Result.error("Player not in queue")
         }
@@ -90,31 +86,26 @@ class UnratedQueue(@JSONField(serialize = false) val queueSettings: UnratedQueue
         queue.filter { it.sessionId == sessionId }.forEach { removeFromQueue(it) }
     }
 
-    override fun getSettings(): UnratedQueueSettings {
-        return queueSettings
-    }
+    override fun getSettings(): UnratedQueueSettings = queueSettings
 
-    override fun getPlayersInQueue(): List<QueueEntry> {
-        return queue
-    }
+    override fun getPlayersInQueue(): List<QueueEntry> = queue
 
     class UnratedQueueHandler : QueueHandler<UnratedQueue> {
+        override fun createQueue(
+            queueName: String,
+            context: Context,
+        ): Result<UnratedQueue, String> {
+            val teamSize =
+                context.queryParam("teamSize")
+                    ?: return Result.error("Parameter 'teamSize' is required")
 
-        override fun createQueue(queueName: String, context: Context): Result<UnratedQueue, String> {
-
-            val teamSize = context.queryParam("teamSize")
-                ?: return Result.error("Parameter 'teamSize' is required")
-
-            val numberOfTeams = context.queryParam("numberOfTeams")
-                ?: return Result.error("Parameter 'numberOfTeams' is required")
+            val numberOfTeams =
+                context.queryParam("numberOfTeams")
+                    ?: return Result.error("Parameter 'numberOfTeams' is required")
 
             return Result.ok(UnratedQueue(UnratedQueueSettings(queueName, teamSize.toInt(), numberOfTeams.toInt())))
         }
 
-        override fun getQueueStore(): QueueStore<UnratedQueue> {
-            return UnratedQueueStore()
-        }
-
+        override fun getQueueStore(): QueueStore<UnratedQueue> = UnratedQueueStore()
     }
-
 }

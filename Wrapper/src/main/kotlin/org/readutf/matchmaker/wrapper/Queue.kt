@@ -9,27 +9,28 @@ import org.readutf.matchmaker.wrapper.api.QueueService
 import java.util.*
 import java.util.function.Supplier
 
-class Queue(private val sessionId: String, queueSettings: QueueSettings, private val queueService: QueueService) {
-
+class Queue(
+    private val sessionId: String,
+    queueSettings: QueueSettings,
+    private val queueService: QueueService,
+) {
     private val queueName = queueSettings.queueName
 
-    private val exceptionMap = mutableMapOf<String, Supplier<Exception>>(
-
-        "Queue $queueName not found" to Supplier { QueueNotFoundException() },
-        "Invalid player teams" to Supplier { InvalidTeamsException() },
-
-    )
+    private val exceptionMap =
+        mutableMapOf<String, Supplier<Exception>>(
+            "Queue $queueName not found" to Supplier { QueueNotFoundException() },
+            "Invalid player teams" to Supplier { InvalidTeamsException() },
+        )
 
     @Throws(Exception::class)
-    fun join(players: List<UUID>): Deferred<Unit> = runBlocking {
-        async {
-            val joinResult = queueService.join(queueName, QueueEntry(sessionId = sessionId, playerIds = players))
+    fun join(players: List<UUID>): Deferred<Unit> =
+        runBlocking {
+            async {
+                val joinResult = queueService.join(queueName, QueueEntry(sessionId = sessionId, playerIds = players))
 
-            if(!joinResult.success) throw Exception("Failed to join queue: " + joinResult.failureReason)
+                if (!joinResult.success) throw Exception("Failed to join queue: " + joinResult.failureReason)
 
-            return@async
+                return@async
+            }
         }
-    }
-
-
 }
