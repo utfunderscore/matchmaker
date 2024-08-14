@@ -61,8 +61,6 @@ dependencies {
 
     // Commands
     implementation("com.github.Revxrsal.Lamp:common:3.2.1")
-
-    // Add your specific platform module here
     implementation("com.github.Revxrsal.Lamp:cli:3.2.1")
 }
 

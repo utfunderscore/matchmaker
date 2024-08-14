@@ -23,7 +23,6 @@ class EndpointManager(
                 config.jetty.defaultPort = endpointConfig.port
 
                 config.jsonMapper(FastJsonMapper)
-//        config.bundledPlugins.enableDevLogging()
                 config.bundledPlugins.enableCors { cors -> cors.addRule { it.anyHost() } }
                 config.router.mount(Annotated) { routing ->
 
