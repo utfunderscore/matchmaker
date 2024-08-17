@@ -6,6 +6,7 @@ import org.readutf.matchmaker.shared.settings.QueueSettings
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -13,10 +14,10 @@ interface QueueService {
     @GET("/api/queue/list")
     suspend fun list(): ApiResponse<List<QueueSettings>>
 
-    @GET("/api/queue/{id}/create/")
+    @PUT("/api/queue/{id}/create/")
     suspend fun create(
         @Path("id") queueType: String,
-        @Path("name") queueName: String,
+        @Query("name") queueName: String,
     ): ApiResponse<QueueSettings>
 
     @POST("/api/queue/join")

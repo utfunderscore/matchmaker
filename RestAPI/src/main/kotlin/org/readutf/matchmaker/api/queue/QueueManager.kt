@@ -1,18 +1,15 @@
 package org.readutf.matchmaker.api.queue
 
 import io.github.oshai.kotlinlogging.KotlinLogging
+import org.readutf.matchmaker.api.game.GameManager
 import org.readutf.matchmaker.api.queue.queues.UnratedQueue
-import org.readutf.matchmaker.api.queue.socket.QueueSocketManager
-import org.readutf.matchmaker.shared.TypedJson
 import org.readutf.matchmaker.shared.entry.QueueEntry
-import org.readutf.matchmaker.shared.result.QueueResult
-import org.readutf.matchmaker.shared.result.impl.EmptyQueueResult
+import org.readutf.matchmaker.shared.result.Result
 import org.readutf.matchmaker.shared.settings.QueueSettings
-import panda.std.Result
 import java.util.concurrent.*
 
 class QueueManager(
-    val socketManager: QueueSocketManager,
+    val gameManager: GameManager,
 ) {
     private val logger = KotlinLogging.logger {}
     private val queues = mutableMapOf<String, Queue>()
@@ -28,8 +25,8 @@ class QueueManager(
     fun joinQueue(
         queue: Queue,
         queueEntry: QueueEntry,
-    ): CompletableFuture<Result<Boolean, String>> =
-        runOnQueue(queue) {
+    ): CompletableFuture<Result<Boolean>> =
+        supplyOnQueue(queue) {
             queue.addToQueue(queueEntry)
         }
 
@@ -42,35 +39,37 @@ class QueueManager(
 
     fun tickQueue(queue: Queue) =
         runOnQueue(queue) {
-            var previousResult: QueueResult? = null
+            /**
+             * Continue to tick until the queue is unable to produce
+             * a result or if the queue produces an error
+             */
+            while (true) {
+                val result = queue.tick()
+                if (result.isError()) break
 
-            val results = mutableListOf<QueueResult>()
-            while (previousResult == null || previousResult !is EmptyQueueResult) {
-                previousResult = queue.tick()
-                results.add(previousResult)
-            }
-
-            results.forEach { result ->
-                result
-                    .getAffectedSessions()
-                    .distinct()
-                    .forEach { session -> socketManager.notify(session, TypedJson(result)) }
+                // Process queue result submits a task to seperate thread
+                gameManager.processQueueResult(result.get())
             }
         }
 
+    /**
+     * Remove all queue entries linked to a specific sessionId
+     *
+     * (Used on socket disconnect)
+     */
     fun invalidateSession(sessionId: String) {
         for (queue in queues.values) {
-            runOnQueue(queue) { queue.invalidateSession(sessionId) }
+            supplyOnQueue(queue) { queue.invalidateSession(sessionId) }
         }
     }
 
     private fun <T : Queue> registerQueueHandler(
-        name: String,
+        handlerName: String,
         queueHandler: QueueHandler<T>,
     ) {
-        require(!queueCreators.containsKey(name)) { "Queue creator already exists" }
+        require(!queueCreators.containsKey(handlerName)) { "Queue creator already exists" }
 
-        queueCreators[name] = queueHandler
+        queueCreators[handlerName] = queueHandler
 
         queueHandler.getQueueStore().loadQueues().forEach { queue: Queue ->
             registerQueue(queue.getSettings().queueName, queue)
@@ -99,10 +98,21 @@ class QueueManager(
      * Run a task on a specific queue
      * @return a future that will be completed when the task is done
      */
-    fun <T> runOnQueue(
+    fun <T> supplyOnQueue(
         queue: Queue,
         runnable: () -> T,
     ): CompletableFuture<T> = CompletableFuture.supplyAsync(runnable, getExecutor(queue))
+
+    /*
+     * Run a task on a specific queue
+     * @return a future that will be completed when the task is done
+     */
+    fun runOnQueue(
+        queue: Queue,
+        runnable: () -> Unit,
+    ) {
+        CompletableFuture.runAsync(runnable, getExecutor(queue))
+    }
 
     /**
      * Get a queue by its name
