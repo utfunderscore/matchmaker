@@ -4,11 +4,9 @@ import com.alibaba.fastjson2.JSON
 import com.alibaba.fastjson2.JSONObject
 
 class TypedJson(
-    any: Any,
+    val data: Any,
+    val type: String = data::class.qualifiedName!!,
 ) {
-    val type = any::class.qualifiedName
-    val data = any
-
     override fun toString(): String = "TypedJson(type=$type, data=$data)"
 
     companion object {
@@ -17,7 +15,9 @@ class TypedJson(
 
             val clazz = Class.forName(jsonObject.getString("type"))
 
-            val data = jsonObject.getObject("data", clazz)
+            val dataJson = jsonObject.getString("data")
+
+            val data = JSON.parseObject(dataJson, clazz)
 
             return TypedJson(data)
         }
