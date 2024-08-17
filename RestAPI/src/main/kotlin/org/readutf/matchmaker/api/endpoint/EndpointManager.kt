@@ -1,5 +1,6 @@
 package org.readutf.matchmaker.api.endpoint
 
+import io.github.oshai.kotlinlogging.KotlinLogging
 import io.javalin.Javalin
 import io.javalin.community.routing.annotations.AnnotatedRouting.Annotated
 import org.readutf.matchmaker.api.config.EndpointConfig
@@ -14,6 +15,8 @@ class EndpointManager(
     private var queueSocketManager: QueueSocketManager,
     vararg endpoints: Any,
 ) {
+    private val logger = KotlinLogging.logger {}
+
     private var javalin: Javalin =
         Javalin
             .createAndStart { config ->
@@ -35,7 +38,7 @@ class EndpointManager(
 
                 config.pvt.internalRouter.allHttpHandlers().forEach { parsedEndpoint ->
                     val endpoint = parsedEndpoint.endpoint
-                    println("Registered ${endpoint.method.name} endpoint '${endpoint.path}")
+                    logger.info { "Registered ${endpoint.method.name} endpoint '${endpoint.path}" }
                 }
             }.exception(Exception::class.java) { e, ctx ->
                 ctx.json(ApiResponse.failure<Boolean>(e.message ?: "An error occurred"))
