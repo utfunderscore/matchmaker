@@ -29,8 +29,18 @@ class Queue(
                 val joinResult = queueService.join(queueName, QueueEntry(sessionId = sessionId, playerIds = players))
 
                 if (!joinResult.success) throw Exception("Failed to join queue: " + joinResult.failureReason)
+            }
+        }
 
-                return@async
+    @Throws(Exception::class)
+    fun joinMany(teams: List<List<UUID>>): Deferred<Unit> =
+        runBlocking {
+            async {
+                teams.forEach { players ->
+                    val joinResult = queueService.join(queueName, QueueEntry(sessionId = sessionId, playerIds = players))
+
+                    if (!joinResult.success) throw Exception("Failed to join queue: " + joinResult.failureReason)
+                }
             }
         }
 }
