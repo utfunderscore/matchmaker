@@ -2,7 +2,7 @@ package org.readutf.matchmaker.api.queue
 
 import io.javalin.http.Context
 import org.readutf.matchmaker.api.queue.store.QueueStore
-import panda.std.Result
+import org.readutf.matchmaker.shared.result.Result
 
 /**
  * Queue handlers are responsible for creating and managing queues.
@@ -16,7 +16,7 @@ interface QueueHandler<T : Queue> {
     fun createQueue(
         queueName: String,
         context: Context,
-    ): Result<T, String>
+    ): Result<T>
 
     fun getQueueStore(): QueueStore<T>
 }

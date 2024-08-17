@@ -10,12 +10,11 @@ import org.readutf.matchmaker.api.queue.matchmaker.UnratedMatchmaker
 import org.readutf.matchmaker.api.queue.store.QueueStore
 import org.readutf.matchmaker.api.queue.store.impl.UnratedQueueStore
 import org.readutf.matchmaker.shared.entry.QueueEntry
-import org.readutf.matchmaker.shared.result.QueueResult
-import org.readutf.matchmaker.shared.result.impl.EmptyQueueResult
-import org.readutf.matchmaker.shared.result.impl.MatchMakerError
-import org.readutf.matchmaker.shared.result.impl.QueueSuccess
+import org.readutf.matchmaker.shared.result.QueueTickData
+import org.readutf.matchmaker.shared.result.Result
+import org.readutf.matchmaker.shared.result.Result.Companion.error
+import org.readutf.matchmaker.shared.result.Result.Companion.ok
 import org.readutf.matchmaker.shared.settings.UnratedQueueSettings
-import panda.std.Result
 import java.util.*
 
 class UnratedQueue(
@@ -29,22 +28,22 @@ class UnratedQueue(
 
     override fun isInQueue(uuid: UUID): Boolean = playerTracker.containsKey(uuid)
 
-    override fun addToQueue(queueEntry: QueueEntry): Result<Boolean, String> {
-        if (queueEntry.playerIds.size > queueSettings.teamSize) return Result.error("Too many players in queue entry")
-        if (queueEntry.playerIds.isEmpty()) return Result.error("No players in queue entry")
+    override fun addToQueue(queueEntry: QueueEntry): Result<Boolean> {
+        if (queueEntry.playerIds.size > queueSettings.teamSize) return error("Too many players in queue entry")
+        if (queueEntry.playerIds.isEmpty()) return error("No players in queue entry")
 
         if (queueEntry.playerIds.any { playerTracker.containsKey(it) }) {
             logger.info { "Player already in queue" }
-            return Result.error("Player already in queue")
+            return error("Player already in queue")
         }
 
         queue.add(queueEntry)
         queueEntry.playerIds.forEach { playerTracker[it] = queueEntry }
         logger.info { "Added player to queue" }
-        return Result.ok(true)
+        return ok(true)
     }
 
-    override fun tick(): QueueResult {
+    override fun tick(): Result<QueueTickData> {
         logger.info { "Ticking queue ${queueSettings.queueName}" }
 
         logger.info { "Before ${queue.size}" }
@@ -54,13 +53,13 @@ class UnratedQueue(
                 matchmaker.buildTeams(queue)
             } catch (e: TeamBuildException) {
                 logger.error(e) { "Error building teams" }
-                return MatchMakerError(queueSettings.queueName, queue, e.message ?: "Unknown Error")
+                return error(e.message ?: "null")
             }
 
         logger.info { "After ${queue.size}" }
 
         if (teams.isEmpty()) {
-            return EmptyQueueResult(queueSettings.queueName)
+            return error("No teams available")
         }
 
         for (team in teams) {
@@ -69,16 +68,16 @@ class UnratedQueue(
             }
         }
 
-        return QueueSuccess(queueSettings.queueName, teams)
+        return ok(QueueTickData(queueSettings.queueName, teams))
     }
 
-    override fun removeFromQueue(queueEntry: QueueEntry): Result<Unit, String> {
+    override fun removeFromQueue(queueEntry: QueueEntry): Result<Unit> {
         if (queueEntry.playerIds.any { !playerTracker.containsKey(it) }) {
-            return Result.error("Player not in queue")
+            return error("Player not in queue")
         }
         queue.remove(queueEntry)
         queueEntry.playerIds.forEach { playerTracker.remove(it) }
-        return Result.ok(Unit)
+        return ok(Unit)
     }
 
     override fun invalidateSession(sessionId: String) {
@@ -94,16 +93,16 @@ class UnratedQueue(
         override fun createQueue(
             queueName: String,
             context: Context,
-        ): Result<UnratedQueue, String> {
+        ): Result<UnratedQueue> {
             val teamSize =
                 context.queryParam("teamSize")
-                    ?: return Result.error("Parameter 'teamSize' is required")
+                    ?: return error("Parameter 'teamSize' is required")
 
             val numberOfTeams =
                 context.queryParam("numberOfTeams")
-                    ?: return Result.error("Parameter 'numberOfTeams' is required")
+                    ?: return error("Parameter 'numberOfTeams' is required")
 
-            return Result.ok(UnratedQueue(UnratedQueueSettings(queueName, teamSize.toInt(), numberOfTeams.toInt())))
+            return ok(UnratedQueue(UnratedQueueSettings(queueName, teamSize.toInt(), numberOfTeams.toInt())))
         }
 
         override fun getQueueStore(): QueueStore<UnratedQueue> = UnratedQueueStore()
