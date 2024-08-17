@@ -1,11 +1,13 @@
 package org.readutf.matchmaker.wrapper
 
-import org.readutf.matchmaker.shared.entry.QueueEntry
+import org.readutf.matchmaker.shared.result.GameResult
+import org.readutf.matchmaker.shared.result.QueueTickData
 
 interface QueueListener {
     fun onQueueSuccess(
         queue: Queue,
-        teams: List<List<QueueEntry>>,
+        queueResult: QueueTickData,
+        gameResult: GameResult,
     )
 
     fun onMatchMakerError(

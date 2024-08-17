@@ -6,9 +6,8 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
-import org.readutf.matchmaker.shared.result.QueueResult
-import org.readutf.matchmaker.shared.result.impl.MatchMakerError
-import org.readutf.matchmaker.shared.result.impl.QueueSuccess
+import org.readutf.matchmaker.shared.result.MatchMakerResult
+import org.readutf.matchmaker.shared.result.Result
 import org.readutf.matchmaker.wrapper.api.QueueService
 import org.readutf.matchmaker.wrapper.socket.SocketClient
 import org.readutf.matchmaker.wrapper.utils.FastJsonConvertorFactory
@@ -54,40 +53,43 @@ class QueueManager private constructor(
     fun createQueue(
         queueType: String,
         queueName: String,
-    ): Deferred<Queue> =
+    ): Deferred<Result<Queue>> =
         runBlocking {
-            return@runBlocking async {
+            async {
                 val apiResponse = queueService.create(queueType, queueName)
 
                 if (!apiResponse.success || apiResponse.response == null) {
-                    throw Exception(apiResponse.failureReason ?: "Failed to create queue")
+                    if (apiResponse.failureReason.equals("Queue test already exists", ignoreCase = true)) {
+                        return@async getQueueOrFetch(queueName)?.let { Result.ok(it) } ?: Result.error("Failed to create queue")
+                    }
+                    return@async Result.error(apiResponse.failureReason ?: "Failed to create queue")
                 }
 
                 val queueSettings = apiResponse.response!!
 
                 val queue = Queue(socketId, queueSettings, queueService)
                 queues[queueSettings.queueName] = queue
-                return@async queue
+                return@async Result.ok(queue)
             }
         }
 
-    fun handleQueueResultAsync(queueResult: QueueResult) = runBlocking { launch { handleQueueResult(queueResult) } }
+    fun handleQueueResultAsync(matchMakerResult: MatchMakerResult) = runBlocking { launch { handleQueueResult(matchMakerResult) } }
 
-    private suspend fun handleQueueResult(queueResult: QueueResult) {
-        val queue = getQueueOrFetch(queueResult.queueName)
+    private suspend fun handleQueueResult(result: MatchMakerResult) {
+        val queue = getQueueOrFetch(result.queueId)
 
         if (queue == null) {
             logger.warn { "Received information about a queue that doesnt exist" }
             return
         }
 
-        when (queueResult) {
-            is QueueSuccess -> {
-                queueListener.onQueueSuccess(queue, queueResult.queueEntries)
+        when (result.isSuccess()) {
+            true -> {
+                queueListener.onQueueSuccess(queue, result.queueResult!!, result.gameResult!!)
             }
 
-            is MatchMakerError -> {
-                queueListener.onMatchMakerError(queue, queueResult.failureReason)
+            false -> {
+                queueListener.onMatchMakerError(queue, result.failureReason!!)
             }
         }
     }

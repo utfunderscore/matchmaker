@@ -5,7 +5,7 @@ import com.neovisionaries.ws.client.WebSocketAdapter
 import com.neovisionaries.ws.client.WebSocketFactory
 import io.github.oshai.kotlinlogging.KotlinLogging
 import org.readutf.matchmaker.shared.TypedJson
-import org.readutf.matchmaker.shared.result.QueueResult
+import org.readutf.matchmaker.shared.result.MatchMakerResult
 import org.readutf.matchmaker.wrapper.QueueManager
 import java.util.concurrent.CompletableFuture
 
@@ -53,8 +53,8 @@ class SocketClient(
         }
 
         when (typedData.data) {
-            is QueueResult -> {
-                queueManager.handleQueueResultAsync(typedData.data as QueueResult)
+            is MatchMakerResult -> {
+                queueManager.handleQueueResultAsync(typedData.data as MatchMakerResult)
             }
 
             else -> {
