@@ -13,27 +13,6 @@ tasks {
     }
 }
 
-publishing {
-    repositories {
-        maven {
-            name = "readutf"
-            url = uri("https://reposilite.readutf.org/releases")
-            credentials(PasswordCredentials::class)
-            authentication {
-                create<BasicAuthentication>("basic")
-            }
-        }
-    }
-    publications {
-        create<MavenPublication>("maven") {
-            groupId = "org.readutf.matchmaker"
-            artifactId = "api"
-            version = "1.0.0"
-            from(components["java"])
-        }
-    }
-}
-
 dependencies {
     testImplementation(kotlin("test"))
 
@@ -62,6 +41,31 @@ dependencies {
     // Commands
     implementation("com.github.Revxrsal.Lamp:common:3.2.1")
     implementation("com.github.Revxrsal.Lamp:cli:3.2.1")
+
+    // GameMaker
+    implementation("org.readutf.orchestrator:api-wrapper:1.3.1")
+    implementation("org.readutf.orchestrator:shared:1.3.1")
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "readutf"
+            url = uri("https://reposilite.readutf.org/releases")
+            credentials(PasswordCredentials::class)
+            authentication {
+                create<BasicAuthentication>("basic")
+            }
+        }
+    }
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "org.readutf.matchmaker"
+            artifactId = "api"
+            version = "1.0.0"
+            from(components["java"])
+        }
+    }
 }
 
 tasks.test {
