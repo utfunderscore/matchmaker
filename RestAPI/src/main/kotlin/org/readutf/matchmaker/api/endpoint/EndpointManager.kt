@@ -24,12 +24,18 @@ class EndpointManager(
 
                 config.jsonMapper(FastJsonMapper)
                 config.bundledPlugins.enableCors { cors -> cors.addRule { it.anyHost() } }
+                config.bundledPlugins.enableDevLogging()
                 config.router.mount(Annotated) { routing ->
 
                     routing.registerResultHandler(ApiResponse::class.java) { ctx, result -> ctx.json(result) }
                     routing.registerResultHandler(CompletableFuture::class.java) { ctx, result -> ctx.future { result } }
 
                     endpoints.forEach { routing.registerEndpoints(it) }
+                }
+
+                config.pvt.internalRouter.allHttpHandlers().forEach { parsedEndpoint ->
+                    val endpoint = parsedEndpoint.endpoint
+                    println("Registered ${endpoint.method.name} endpoint '${endpoint.path}")
                 }
             }.exception(Exception::class.java) { e, ctx ->
                 ctx.json(ApiResponse.failure<Boolean>(e.message ?: "An error occurred"))
