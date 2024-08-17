@@ -35,7 +35,7 @@ class QueueEndpoints(
     @Get("/list")
     fun list(): ApiResponse<List<QueueSettings>> = ApiResponse.success(queueManager.getQueues().toList())
 
-    @Put("{id}/create/")
+    @Put("/{id}/create/")
     fun create(ctx: Context): ApiResponse<QueueSettings> {
         val id = ctx.pathParam("id")
 
@@ -44,7 +44,7 @@ class QueueEndpoints(
         val queueCreator = queueManager.getQueueHandler(id) ?: return ApiResponse.failure("Queue creator $id not found")
         val queue = queueCreator.createQueue(queueName, ctx)
 
-        if (queue.isErr) return ApiResponse.failure(queue.error)
+        if (queue.isError()) return ApiResponse.failure(queue.getError())
 
         queueManager.registerQueue(queueName, queue.get())
 
@@ -83,12 +83,11 @@ class QueueEndpoints(
 
         ctx.future {
             addToQueueResult.thenAccept { result ->
-                result
-                    .peek { _ ->
-                        ctx.json(ApiResponse.success(true))
-                    }.onError { error ->
-                        ctx.json(ApiResponse.failure<Boolean>(error))
-                    }
+                if (result.isError()) {
+                    ctx.json(ApiResponse.failure<Boolean>(result.getError()))
+                } else {
+                    ctx.json(ApiResponse.success(true))
+                }
             }
         }
     }
