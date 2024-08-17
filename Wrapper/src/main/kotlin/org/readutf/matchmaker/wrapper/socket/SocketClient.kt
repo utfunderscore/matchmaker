@@ -43,14 +43,13 @@ class SocketClient(
             return
         }
 
-        val typedData: TypedJson
-
-        try {
-            typedData = TypedJson.fromString(text)
-        } catch (e: Exception) {
-            logger.error(e) { "Failed to parse matchmaker notification" }
-            return
-        }
+        val typedData =
+            try {
+                TypedJson.fromString(text)
+            } catch (e: Exception) {
+                logger.error(e) { "Failed to parse matchmaker notification" }
+                return
+            }
 
         when (typedData.data) {
             is MatchMakerResult -> {
