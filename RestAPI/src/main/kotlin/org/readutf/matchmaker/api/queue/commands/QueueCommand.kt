@@ -1,5 +1,7 @@
 package org.readutf.matchmaker.api.queue.commands
 
+import com.alibaba.fastjson2.JSON
+import com.alibaba.fastjson2.JSONWriter
 import org.readutf.matchmaker.api.queue.QueueManager
 import revxrsal.commands.annotation.Command
 import revxrsal.commands.annotation.Subcommand
@@ -29,12 +31,6 @@ class QueueCommand(
             }
 
         actor.reply("Queue $queueName:")
-        actor.reply("  - Size: ${queue.getPlayersInQueue().size}")
-        actor.reply("  - Settings: ${queue.getSettings()}")
-        if (queue.getPlayersInQueue().isNotEmpty()) {
-            for (queueEntry in queue.getPlayersInQueue()) {
-                actor.reply("  - ${queueEntry.playerIds.joinToString(", ")}")
-            }
-        }
+        actor.reply(JSON.toJSONString(queue, JSONWriter.Feature.PrettyFormat))
     }
 }
