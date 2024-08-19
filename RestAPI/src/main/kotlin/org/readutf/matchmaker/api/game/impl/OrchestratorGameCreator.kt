@@ -14,9 +14,11 @@ class OrchestratorGameCreator(
 
     override fun findGame(queueType: String): CompletableFuture<Result<GameResult>> {
         return api.requestGame(queueType).thenApply {
-            val server = it.server ?: return@thenApply Result.error("Invalid server")
+            if (!it.isSuccess()) return@thenApply Result.error("")
 
-            Result.ok(GameResult(server.address.host, server.address.port, it.gameId!!))
+            val address = it.server!!.address
+
+            Result.ok(GameResult(address.host, address.port, it.gameId!!))
         }
     }
 }
