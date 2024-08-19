@@ -27,7 +27,7 @@ class EndpointManager(
 
                 config.jsonMapper(FastJsonMapper)
                 config.bundledPlugins.enableCors { cors -> cors.addRule { it.anyHost() } }
-                config.bundledPlugins.enableDevLogging()
+//                config.bundledPlugins.enableDevLogging()
                 config.router.mount(Annotated) { routing ->
 
                     routing.registerResultHandler(ApiResponse::class.java) { ctx, result -> ctx.json(result) }
