@@ -4,6 +4,7 @@ import org.readutf.matchmaker.api.queue.socket.QueueSocketManager
 import org.readutf.matchmaker.shared.TypedJson
 import org.readutf.matchmaker.shared.result.MatchMakerResult
 import org.readutf.matchmaker.shared.result.QueueTickData
+import java.util.*
 
 class GameManager(
     private val socketManager: QueueSocketManager,
@@ -11,6 +12,10 @@ class GameManager(
 ) {
     fun processQueueResult(queueTickResult: QueueTickData) {
         val findGame = gameCreator.findGame(queueTickResult.queueName)
+//        val findGame =
+//            CompletableFuture.completedFuture(
+//                Result.ok(GameResult("", 1, UUID.randomUUID())),
+//            )
 
         findGame.thenAccept { gameResult ->
 
