@@ -79,7 +79,6 @@ class QueueEndpoints(
         }
 
         val addToQueueResult = queueManager.joinQueue(queue, queueEntry)
-        queueManager.tickQueue(queue)
 
         ctx.future {
             addToQueueResult.thenAccept { result ->
