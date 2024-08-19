@@ -40,6 +40,9 @@ class UnratedQueue(
         queue.add(queueEntry)
         queueEntry.playerIds.forEach { playerTracker[it] = queueEntry }
         logger.info { "Added player to queue" }
+
+        println("in Queue: $queue")
+
         return ok(true)
     }
 
@@ -56,25 +59,22 @@ class UnratedQueue(
                 return error(e.message ?: "null")
             }
 
-        logger.info { "After ${queue.size}" }
-
-        if (teams.isEmpty()) {
-            return error("No teams available")
-        }
-
         for (team in teams) {
             for (queueEntry in team) {
                 removeFromQueue(queueEntry)
             }
         }
 
+        logger.info { "After ${queue.size}" }
+
+        if (teams.isEmpty()) {
+            return error("No teams available")
+        }
+
         return ok(QueueTickData(queueSettings.queueName, teams))
     }
 
     override fun removeFromQueue(queueEntry: QueueEntry): Result<Unit> {
-        if (queueEntry.playerIds.any { !playerTracker.containsKey(it) }) {
-            return error("Player not in queue")
-        }
         queue.remove(queueEntry)
         queueEntry.playerIds.forEach { playerTracker.remove(it) }
         return ok(Unit)
