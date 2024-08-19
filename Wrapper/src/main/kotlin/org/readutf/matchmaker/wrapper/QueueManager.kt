@@ -85,11 +85,19 @@ class QueueManager private constructor(
 
         when (result.isSuccess()) {
             true -> {
-                queueListener.onQueueSuccess(queue, result.queueResult!!, result.gameResult!!)
+                try {
+                    queueListener.onQueueSuccess(queue, result.queueResult!!, result.gameResult!!)
+                } catch (e: Exception) {
+                    queueListener.onMatchMakerError(queue, e.message ?: "")
+                }
             }
 
             false -> {
-                queueListener.onMatchMakerError(queue, result.failureReason!!)
+                try {
+                    queueListener.onMatchMakerError(queue, result.failureReason!!)
+                } catch (e: Exception) {
+                    logger.error(e) { "Failed to handle match maker error." }
+                }
             }
         }
     }
