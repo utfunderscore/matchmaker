@@ -13,7 +13,7 @@ class QueueManager(
 ) {
     private val logger = KotlinLogging.logger {}
     private val queues = mutableMapOf<String, Queue>()
-    private val queueExecutor = mutableMapOf<Queue, ExecutorService>()
+    private val queueExecutor = mutableMapOf<Queue, ScheduledExecutorService>()
     private val queueCreators = mutableMapOf<String, QueueHandler<*>>()
 
     init {
@@ -37,7 +37,7 @@ class QueueManager(
         queue.removeFromQueue(queueEntry)
     }
 
-    fun tickQueue(queue: Queue) =
+    internal fun tickQueue(queue: Queue) =
         runOnQueue(queue) {
             /**
              * Continue to tick until the queue is unable to produce
@@ -86,6 +86,17 @@ class QueueManager(
             queues[name] = queue
         }
 
+        getExecutor(queue).scheduleAtFixedRate(
+            // command =
+            QueueTickTask(this, queue),
+            // initialDelay =
+            0,
+            // period =
+            100,
+            // unit =
+            TimeUnit.MILLISECONDS,
+        )
+
         return queue
     }
 
@@ -126,13 +137,15 @@ class QueueManager(
      *
      * @return the executor for the given queue
      */
-    private fun getExecutor(queue: Queue): ExecutorService =
-        queueExecutor.getOrDefault(queue, ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, LinkedBlockingQueue()))
+    private fun getExecutor(queue: Queue): ScheduledExecutorService =
+        queueExecutor.getOrPut(queue) { Executors.newSingleThreadScheduledExecutor() }
 
     /**
      * @return the settings of all queues which includes custom properties
      */
     fun getQueues(): Collection<QueueSettings> = queues.values.map { it.getSettings() }
+
+    fun getInternalQueues() = queues.values.toList()
 
     /**
      * @return the names of all queue creators
