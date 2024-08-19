@@ -16,6 +16,8 @@ class Result<T>(
 
     fun getError(): String = error!!
 
+    override fun toString(): String = "Result(value=$value, error=$error)"
+
     companion object {
         fun <T> error(error: String): Result<T> = Result(null, error)
 
